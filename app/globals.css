@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #baffce;
+    --foreground: #040404;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 🌿 Container */
+.form-container {
+  max-width: 420px;
+  margin: auto;
+  padding: 25px;
+  background: #f6fff8;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 128, 0, 0.08);
+}
+
+/* Title */
+.form-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #1b5e20;
+}
+
+/* Form Group */
+.form-group {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+/* Inputs & Select */
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #c8e6c9;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  background: transparent;
+  transition: 0.3s;
+}
+
+/* Focus Effect */
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+/* Label */
+.form-group label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  background: #f6fff8;
+  padding: 0 5px;
+  color: #4caf50;
+  font-size: 14px;
+  transition: 0.3s;
+  pointer-events: none;
+}
+
+/* Floating Animation */
+.form-group input:focus+label,
+.form-group input:not(:placeholder-shown)+label,
+.form-group select:focus+label,
+.form-group select:valid+label {
+  top: -8px;
+  font-size: 12px;
+  color: #1b5e20;
+}
+
+/* Button */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #afc4b0, #f7f7f7);
+  border: none;
+  border-radius: 10px;
+  color: rgb(16, 13, 13);
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* Button Hover */
+.submit-btn:hover {
+  background: linear-gradient(135deg, #758776, #f7f7f7);
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .form-container {
+    padding: 15px;
+  }
+
+  .form-group input,
+  .form-group select {
+    font-size: 14px;
+  }
+}
+
+.input {
+  @apply border p-2 rounded w-full;
+}
