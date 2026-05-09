@@ -74,7 +74,7 @@ body {
   top: 50%;
   left: 12px;
   transform: translateY(-50%);
-  background: #f6fff8;
+  background: #ffffff;
   padding: 0 5px;
   color: #4caf50;
   font-size: 14px;
@@ -124,4 +124,12 @@ body {
 
 .input {
   @apply border p-2 rounded w-full;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  width: 100%;
 }

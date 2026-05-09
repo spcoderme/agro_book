@@ -59,7 +59,7 @@ export default function ProductForm({ onSuccess }) {
       <select value={unit_id} onChange={e => setUnit(e.target.value)} required>
         <option value="" disabled hidden></option>
         {units.map(u => (
-          <option key={u.id} value={u.id}>{u.short_name}</option>
+          <option key={u.id} value={u.id}>{u.name}({u.short_name})</option>
         ))}
       </select>
       <label>Unit</label>

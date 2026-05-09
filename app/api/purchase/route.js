@@ -11,6 +11,7 @@ export async function POST(req) {
       purchase_date,
       vendor_id,
       vendor_name, // for new vendor support
+      payment_status,
       items,
       summary
     } = data;
@@ -43,14 +44,16 @@ export async function POST(req) {
     // ✅ 2. INSERT PURCHASE (use rounded total)
     const [res] = await db.execute(
       `INSERT INTO purchases 
-      (bill_no, dc_no, vendor_id, purchase_date, grand_total)
-      VALUES (?, ?, ?, ?, ?)`,
+      (bill_no, dc_no, vendor_id, purchase_date, grand_total, hamali, payment_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         bill_no || null,
         dc_no || null,
         finalVendorId,
         purchase_date || null,
-        summary.grandTotal || 0   // ✅ FIXED
+        summary.grandTotal || 0,   // ✅ FIXED
+        summary.hamali || 0,
+        payment_status
       ]
     );
 
@@ -65,25 +68,34 @@ export async function POST(req) {
       const product_id = item.product_id ?? null;
       const batch_no = item.batch_no ?? null;
       const unit = item.unit ?? null;
-      const qty = item.qty ? Number(item.qty) : 0;
-      const rate = item.rate ? Number(item.rate) : 0;
-      const tax = item.tax ? Number(item.tax) : 0;
+     const qty = item.qty ? Number(item.qty) : 0;
+const rate = item.rate ? Number(item.rate) : 0;
+const tax = item.tax ? Number(item.tax) : 0;
 
-      // insert item
-      await db.execute(
-        `INSERT INTO purchase_items 
-        (purchase_id, product_id, batch_no, unit, quantity, rate, tax_percent)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          purchaseId,
-          product_id,
-          batch_no,
-          unit,
-          qty,
-          rate,
-          tax
-        ]
-      );
+const base = qty * rate;
+const cgst = (base * tax) / 200;
+const sgst = (base * tax) / 200;
+const total = base + cgst + sgst;
+
+await db.execute(
+  `INSERT INTO purchase_items 
+  (purchase_id, product_id, company_name, unit_value, unit, batch_no, quantity, rate, tax_percent, cgst, sgst, total)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    purchaseId,
+    item.product_id ?? null,
+    item.company_name ?? null,
+    item.unit_value ?? 0,
+    item.unit ?? null,
+    item.batch_no ?? null,
+    qty,
+    rate,
+    tax,
+    cgst,
+    sgst,
+    total
+  ]
+);
 
       // update stock only if valid
       if (product_id && qty > 0) {

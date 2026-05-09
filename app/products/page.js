@@ -65,7 +65,7 @@ export default function Products() {
                   
                   <span>{parseFloat(p.unit_value)}</span>
                   <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-xs">
-                    {p.unit}
+                    {p.unit_name}
                   </span>
                 </td>
 

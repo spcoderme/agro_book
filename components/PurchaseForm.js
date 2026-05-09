@@ -1,5 +1,15 @@
 "use client";
+
 import { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import dynamic from "next/dynamic";
+
+import "react-datepicker/dist/react-datepicker.css";
+
+const Select = dynamic(
+    () => import("react-select"),
+    { ssr: false }
+);
 
 export default function PurchaseForm() {
     const [products, setProducts] = useState([]);
@@ -9,9 +19,11 @@ export default function PurchaseForm() {
     const [form, setForm] = useState({
         bill_no: "",
         dc_no: "",
-        purchase_date: "",
+        purchase_date: new Date(),
         vendor_id: "",
-        hamali: 0
+        vendor_name: "",
+        hamali: 0,
+        payment_status: "pending"
     });
 
     const [items, setItems] = useState([
@@ -19,6 +31,7 @@ export default function PurchaseForm() {
             product_id: "",
             batch_no: "",
             unit_id: "",
+            unit: "",
             unit_value: "",
             qty: "",
             rate: "",
@@ -29,7 +42,7 @@ export default function PurchaseForm() {
     useEffect(() => {
         fetch("/api/products").then(res => res.json()).then(setProducts);
         fetch("/api/vendors").then(res => res.json()).then(setVendors);
-        fetch("/api/units").then(res => res.json()).then(setUnits); // 👈 NEW
+        fetch("/api/units").then(res => res.json()).then(setUnits);
     }, []);
 
     const updateItem = (i, key, value) => {
@@ -39,23 +52,31 @@ export default function PurchaseForm() {
     };
 
     const addRow = () => {
-        setItems([...items, {
-            product_id: "",
-            batch_no: "",
-            unit: "",
-            qty: "",
-            rate: "",
-            tax: 5
-        }]);
+        setItems([
+            ...items,
+            {
+                product_id: "",
+                batch_no: "",
+                unit_id: "",
+                unit: "",
+                unit_value: "",
+                qty: "",
+                rate: "",
+                tax: 5
+            }
+        ]);
     };
 
-    // GST Calculation
+    // ================= GST CALC =================
     const calcSummary = () => {
         let taxable = 0, cgst = 0, sgst = 0;
 
         items.forEach(item => {
-            const base = item.qty * item.rate || 0;
-            const tax = item.tax || 0;
+            const qty = Number(item.qty) || 0;
+            const rate = Number(item.rate) || 0;
+            const tax = Number(item.tax) || 0;
+
+            const base = qty * rate;
 
             taxable += base;
 
@@ -64,7 +85,10 @@ export default function PurchaseForm() {
             sgst += half;
         });
 
-        const total = taxable + cgst + sgst;
+        const hamali = Number(form.hamali) || 0;
+
+        const subTotal = taxable + cgst + sgst;
+        const total = subTotal + hamali;
 
         const roundedTotal = Math.round(total);
         const roundOff = roundedTotal - total;
@@ -73,6 +97,8 @@ export default function PurchaseForm() {
             taxable,
             cgst,
             sgst,
+            hamali,
+            subTotal,
             total,
             roundOff,
             grandTotal: roundedTotal
@@ -81,13 +107,25 @@ export default function PurchaseForm() {
 
     const summary = calcSummary();
 
+    // ================= SUBMIT =================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        console.log("Submitting Items:", items); // 🔥 DEBUG
+
         await fetch("/api/purchase", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 ...form,
+
+                purchase_date:
+                    form.purchase_date
+                        ?.toISOString()
+                        ?.split("T")[0],
+
                 items,
                 summary
             })
@@ -107,44 +145,95 @@ export default function PurchaseForm() {
                 <input className="input" placeholder="DC No"
                     onChange={e => setForm({ ...form, dc_no: e.target.value })}
                 />
-                <input type="date" className="input"
-                    onChange={e => setForm({ ...form, purchase_date: e.target.value })}
-                />
+
+
                 <div className="relative">
+
                     <input
-                        className="input"
-                        placeholder="Search or Enter Vendor"
-                        value={form.vendor_name || ""}
+                        className="input w-full"
+                        placeholder="Search Vendor"
+                        value={form.vendor_name}
                         onChange={(e) => {
-                            setForm({ ...form, vendor_name: e.target.value });
+
+                            setForm({
+                                ...form,
+                                vendor_name: e.target.value,
+                                vendor_id: ""
+                            });
+
                         }}
                     />
 
-                    {/* Suggestions */}
-                    {form.vendor_name && (
-                        <div className="absolute bg-white border w-full z-10 max-h-40 overflow-y-auto">
-                            {vendors
-                                .filter(v =>
-                                    v.name.toLowerCase().includes(form.vendor_name.toLowerCase())
+                    {
+                        form.vendor_name &&
+                        vendors.filter(v =>
+                            v.name
+                                .toLowerCase()
+                                .includes(
+                                    form.vendor_name.toLowerCase()
                                 )
-                                .map(v => (
-                                    <div
-                                        key={v.id}
-                                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() =>
-                                            setForm({
-                                                ...form,
-                                                vendor_id: v.id,
-                                                vendor_name: v.name
-                                            })
-                                        }
-                                    >
-                                        {v.name}
-                                    </div>
-                                ))}
-                        </div>
-                    )}
+                        ).length > 0 && (
+
+                            <div className="absolute z-50 bg-white border w-full max-h-52 overflow-y-auto rounded shadow">
+
+                                {
+                                    vendors
+                                        .filter(v =>
+                                            v.name
+                                                .toLowerCase()
+                                                .includes(
+                                                    form.vendor_name.toLowerCase()
+                                                )
+                                        )
+                                        .map(v => (
+
+                                            <div
+                                                key={v.id}
+                                                className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                                                onClick={() => {
+
+                                                    setForm({
+                                                        ...form,
+                                                        vendor_id: v.id,
+                                                        vendor_name: v.name
+                                                    });
+
+                                                }}
+                                            >
+
+                                                <div className="font-medium">
+                                                    {v.name}
+                                                </div>
+
+                                                <div className="text-xs text-gray-500">
+                                                    {v.mobile}
+                                                </div>
+
+                                            </div>
+
+                                        ))
+                                }
+
+                            </div>
+                        )
+                    }
+
+
+
                 </div>
+                <DatePicker
+  selected={form.purchase_date}
+  onChange={(date) =>
+    setForm({
+      ...form,
+      purchase_date: date
+    })
+  }
+  dateFormat="dd/MM/yyyy"
+  className="input w-full"
+  placeholderText="Select Date"
+/>
+
             </div>
 
             {/* ITEMS */}
@@ -152,8 +241,8 @@ export default function PurchaseForm() {
                 <thead className="bg-gray-200 text-dark">
                     <tr>
                         <th>Product</th>
-                        <th>Unit Value</th>
-                        <th>Unit</th>
+                        <th>Stocks</th>
+
                         <th>Batch</th>
                         <th>Qty</th>
                         <th>Rate</th>
@@ -171,37 +260,61 @@ export default function PurchaseForm() {
                             <tr key={i} className="border-b hover:bg-gray-100 transition-colors duration-200">
 
                                 <td>
-                                    <select className="input"
-                                        onChange={e => updateItem(i, "product_id", e.target.value)}
-                                    >
-                                        <option>Select</option>
-                                        {products.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
+
+    <Select
+        placeholder="Search Product..."
+        value={
+            item.product_id
+                ? {
+                    value: item.product_id,
+                    label: `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit || ""})`
+                }
+                : null
+        }
+        options={products.map(p => ({
+            value: p.id,
+            label:
+                `${p.name} ` +
+                `(${parseFloat(p.unit_value)}${p.unit_name}) ` +
+                `[Stock: ${parseFloat(p.stock || 0)}]`,
+            product: p
+        }))}
+        onChange={(selectedOption) => {
+
+            if (!selectedOption) return;
+
+            const selected = selectedOption.product;
+
+            setItems(prev => {
+
+                const updated = [...prev];
+
+                updated[i] = {
+                    ...updated[i],
+                    product_id: selected.id,
+                    product_name: selected.name,
+                    unit_value: selected.unit_value,
+                    unit: selected.unit_name,
+                    stock: selected.stock
+                };
+
+                return updated;
+            });
+        }}
+        isSearchable
+        className="min-w-[350px]"
+    />
+
+</td>
+
+                                <td>
+                                    <div className="text-xs text-gray-600">
+                                        {item.product_name || "-"} {parseFloat(item.unit_value || 0)} {item.unit || ""} •
+                                        Stock: <span className="text-red-600">{parseFloat(item.stock || 0)} qty</span>
+                                    </div>
                                 </td>
 
-                                {/* UNIT VALUE */}
-                                <td>
-                                    <input className="input"
-                                        placeholder="e.g. 50 (for 50kg)"
-                                        onChange={e => updateItem(i, "unit_value", e.target.value)}
-                                    />
-                                </td>
 
-                                {/* UNIT SELECT */}
-                                <td>
-                                    <select className="input"
-                                        onChange={e => updateItem(i, "unit_id", e.target.value)}
-                                    >
-                                        <option>Select Unit</option>
-                                        {units.map(u => (
-                                            <option key={u.id} value={u.id}>
-                                                {u.name} ({u.short_name})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </td>
 
 
 
@@ -218,25 +331,31 @@ export default function PurchaseForm() {
 
                                 <td>
                                     <input type="number" className="input"
+
+                                        min="0"
                                         onChange={e => updateItem(i, "qty", e.target.value)}
                                     />
                                 </td>
 
                                 <td>
                                     <input type="number" className="input"
+                                        step="0.01"
+                                        min="0"
                                         onChange={e => updateItem(i, "rate", e.target.value)}
                                     />
                                 </td>
 
                                 <td>
                                     <input type="number" className="input"
+                                        step="0.01"
+                                        min="0"
                                         value={item.tax}
                                         onChange={e => updateItem(i, "tax", e.target.value)}
                                     />
                                 </td>
 
-                                <td className="font-semibold">
-                                    <span className="font-light">{(base).toFixed(2)} + {(tax).toFixed(2)}</span> = ({(base + tax).toFixed(2)})
+                                <td className="font-semibold text-sm">
+                                    <span className="font-light">{(base).toFixed(2)} + {(tax).toFixed(2)}</span> = <span className="text-green-900">({(base + tax).toFixed(2)})</span>
                                 </td>
 
                             </tr>
@@ -281,18 +400,64 @@ export default function PurchaseForm() {
                         <div>CGST: ₹ {summary.cgst.toFixed(2)}</div>
                         <div>SGST: ₹ {summary.sgst.toFixed(2)}</div>
 
-                        {/* Round Off */}
-                        <div className="text-gray-700">
-                            <b>Total: ₹ {summary.total.toFixed(2)}</b>
-                        </div>
-                        <div className="text-gray-700">
-                            Round off Amount: ₹ {summary.roundOff.toFixed(2)}
+                        <div className="grid grid-cols-3 gap-4 text-gray-700">
+                            <span className="col-start-2 pt-2">Freight (&#128666;)</span>
+                            <input
+                                type="number"
+                                className="input col-start-3"
+                                step="0.01"
+                                min="0"
+                                value={form.hamali}
+                                onChange={e => setForm({ ...form, hamali: Number(e.target.value) })}
+                            />
                         </div>
 
-                        {/* Grand Total */}
-                        <div className="text-2xl font-bold text-black-600">
+                        <div><b>Total: ₹ {summary.total.toFixed(2)}</b></div>
+
+                        <div>Round off Amount: ₹ {summary.roundOff.toFixed(2)}</div>
+
+                        <div className="text-2xl font-bold">
                             Grand Total: ₹ {summary.grandTotal.toFixed(2)}
                         </div>
+
+                    </div>
+                    <div className="flex items-center gap-5 mt-2">
+
+                        <label className="flex items-center gap-2">
+
+                            <input
+                                type="radio"
+                                value="paid"
+                                checked={form.payment_status === "paid"}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        payment_status: e.target.value
+                                    })
+                                }
+                            />
+
+                            Paid
+
+                        </label>
+
+                        <label className="flex items-center gap-2">
+
+                            <input
+                                type="radio"
+                                value="pending"
+                                checked={form.payment_status === "pending"}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        payment_status: e.target.value
+                                    })
+                                }
+                            />
+
+                            Pending
+
+                        </label>
 
                     </div>
 
