@@ -1,30 +1,46 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET ALL VENDORS
-export async function GET() {
-  try {
+// GET
+export async function GET(req) {
 
-    const [rows] = await db.query(`
-      SELECT 
-        id,
-        name,
-        mobile,
-        address,
-        created_at
-      FROM vendors
-      ORDER BY name ASC
-    `);
+    const { searchParams } =
+        new URL(req.url);
+
+    const search =
+        searchParams.get("search") || "";
+
+    let sql = `
+        SELECT *
+        FROM vendors
+        WHERE 1=1
+    `;
+
+    const params = [];
+
+    if (search) {
+
+        sql += `
+            AND (
+                name LIKE ?
+                OR mobile LIKE ?
+                OR gst_no LIKE ?
+            )
+        `;
+
+        params.push(
+            `%${search}%`,
+            `%${search}%`,
+            `%${search}%`
+        );
+    }
+
+    sql += `
+        ORDER BY id DESC
+    `;
+
+    const [rows] =
+        await db.query(sql, params);
 
     return NextResponse.json(rows);
-
-  } catch (err) {
-
-    console.log("VENDOR FETCH ERROR:", err);
-
-    return NextResponse.json(
-      { error: "Failed to fetch vendors" },
-      { status: 500 }
-    );
-  }
 }
