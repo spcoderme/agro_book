@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
+import dynamic from "next/dynamic";
+
+const Select = dynamic(
+    () => import("react-select"),
+    { ssr: false }
+);
 
 export default function DispatchPage() {
 
@@ -281,58 +287,65 @@ export default function DispatchPage() {
                                         {/* PRODUCT */}
                                         <td className="border p-2">
 
-                                            <select
-                                                className="input"
-                                                value={item.product_id}
-                                                onChange={(e) => {
+    <Select
+    placeholder="Search Product..."
+    isSearchable
 
-                                                    const selected =
-                                                        products.find(
-                                                            p =>
-                                                                p.id ===
-                                                                Number(e.target.value)
-                                                        );
+    menuPortalTarget={
+        typeof window !== "undefined"
+            ? document.body
+            : null
+    }
 
-                                                    if (!selected) return;
+    menuPosition="fixed"
 
-                                                    const updated = [...items];
+    styles={{
+        menuPortal: base => ({
+            ...base,
+            zIndex: 9999
+        })
+    }}
 
-                                                    updated[i] = {
-                                                        ...updated[i],
-                                                        product_id: selected.id,
-                                                        product_name: selected.name,
-                                                        stock: selected.stock,
-                                                        unit_value: selected.unit_value,
-                                                        unit_name: selected.unit_name
-                                                    };
+    options={products.map(p => ({
+        value: p.id,
+        label:
+            `${p.name} (${parseFloat(p.unit_value)}${p.unit_name}) [Stock: ${parseFloat(p.stock)}]`,
+        product: p
+    }))}
 
-                                                    setItems(updated);
-                                                }}
-                                            >
+    value={
+        item.product_id
+            ? {
+                value: item.product_id,
+                label:
+                    `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit_name || ""}) [Stock: ${parseFloat(item.stock || 0)}]`
+            }
+            : null
+    }
 
-                                                <option value="">
-                                                    Select Product
-                                                </option>
+    onChange={(selectedOption) => {
 
-                                                {products.map(p => (
+        if (!selectedOption) return;
 
-                                                    <option
-                                                        key={p.id}
-                                                        value={p.id}
-                                                    >
-                                                        {p.name}
-                                                        {" "}
-                                                        ({parseFloat(p.unit_value)}
-                                                        {p.unit_name})
-                                                        {" "}
-                                                        [Stock:
-                                                        {parseFloat(p.stock)}]
-                                                    </option>
-                                                ))}
+        const selected =
+            selectedOption.product;
 
-                                            </select>
+        const updated = [...items];
 
-                                        </td>
+        updated[i] = {
+            ...updated[i],
+            product_id: selected.id,
+            product_name: selected.name,
+            stock: selected.stock,
+            unit_value: selected.unit_value,
+            unit_name: selected.unit_name
+        };
+
+        setItems(updated);
+    }}
+/>
+
+</td>
 
                                         {/* STOCK */}
                                         <td className="border p-2 text-center font-medium">
