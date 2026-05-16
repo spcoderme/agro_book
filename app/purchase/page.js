@@ -1,14 +1,47 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import PurchaseForm from "../../components/PurchaseForm";
+import Link from "next/link";
 
 export default function PurchasePage() {
-  return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">🧾 Purchase Entry</h1>
 
-      <div className="bg-white shadow rounded-xl p-5">
-        <PurchaseForm />
-      </div>
-    </div>
-  );
+    // ================= HYDRATION FIX =================
+    const [mounted, setMounted] =
+        useState(false);
+
+    useEffect(() => {
+
+        setMounted(true);
+
+    }, []);
+
+    // PREVENT SSR/CLIENT HTML MISMATCH
+    if (!mounted) {
+
+        return null;
+    }
+
+    return (
+
+        <div className="w-full max-w-7xl mx-auto px-3 py-4 md:px-6">
+
+           
+
+            {/* FORM */}
+            <div className="
+                bg-white
+                shadow-lg
+                rounded-2xl
+                p-3
+                sm:p-5
+                border
+            ">
+
+                <PurchaseForm />
+
+            </div>
+
+        </div>
+    );
 }

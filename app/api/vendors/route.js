@@ -1,46 +1,69 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET
+// ================= GET VENDORS =================
 export async function GET(req) {
 
-    const { searchParams } =
-        new URL(req.url);
+    try {
 
-    const search =
-        searchParams.get("search") || "";
+        const { searchParams } =
+            new URL(req.url);
 
-    let sql = `
-        SELECT *
-        FROM vendors
-        WHERE 1=1
-    `;
+        const search =
+            searchParams.get("search") || "";
 
-    const params = [];
-
-    if (search) {
-
-        sql += `
-            AND (
-                name LIKE ?
-                OR mobile LIKE ?
-                OR gst_no LIKE ?
-            )
+        let sql = `
+            SELECT *
+            FROM vendors
+            WHERE 1=1
         `;
 
-        params.push(
-            `%${search}%`,
-            `%${search}%`,
-            `%${search}%`
+        const params = [];
+
+        // ================= SEARCH =================
+        if (search) {
+
+            params.push(
+                `%${search}%`,
+                `%${search}%`,
+                `%${search}%`
+            );
+
+            sql += `
+                AND (
+                    name ILIKE $1
+                    OR mobile ILIKE $2
+                    OR gst_no ILIKE $3
+                )
+            `;
+        }
+
+        sql += `
+            ORDER BY id DESC
+        `;
+
+        const result =
+            await db.query(sql, params);
+
+        return NextResponse.json(
+            result.rows
+        );
+
+    } catch (err) {
+
+        console.log(
+            "GET VENDORS ERROR:",
+            err
+        );
+
+        return NextResponse.json(
+            {
+                error:
+                    "Failed to fetch vendors"
+            },
+            {
+                status: 500
+            }
         );
     }
-
-    sql += `
-        ORDER BY id DESC
-    `;
-
-    const [rows] =
-        await db.query(sql, params);
-
-    return NextResponse.json(rows);
 }

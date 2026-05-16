@@ -1,104 +1,119 @@
 import db from "../../../lib/db";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 
 // ================= GET DISPATCHES =================
 export async function GET(req) {
 
-    const { searchParams } =
-        new URL(req.url);
+    try {
 
-    const sell_bill_no =
-        searchParams.get("sell_bill_no") || "";
+        const { searchParams } =
+            new URL(req.url);
 
-    const driver_name =
-        searchParams.get("driver_name") || "";
+        const sell_bill_no =
+            searchParams.get("sell_bill_no") || "";
 
-    const product =
-        searchParams.get("product") || "";
+        const driver_name =
+            searchParams.get("driver_name") || "";
 
-    const dispatch_date =
-        searchParams.get("dispatch_date") || "";
+        const product =
+            searchParams.get("product") || "";
 
-    let query = `
-        SELECT
-            d.id,
-            d.sell_bill_no,
-            d.dispatch_date,
-            d.driver_name,
-            d.bill_photo,
+        const dispatch_date =
+            searchParams.get("dispatch_date") || "";
 
-            di.quantity,
+        let query = `
+            SELECT
+                d.id,
+                d.sell_bill_no,
+                d.dispatch_date,
+                d.driver_name,
+                d.bill_photo,
 
-            p.name AS product_name,
-            p.unit_value,
-            u.short_name AS unit_name
+                di.quantity,
 
-        FROM dispatches d
+                p.name AS product_name,
+                p.unit_value,
+                u.short_name AS unit_name
 
-        LEFT JOIN dispatch_items di
-            ON d.id = di.dispatch_id
+            FROM dispatches d
 
-        LEFT JOIN products p
-            ON di.product_id = p.id
+            LEFT JOIN dispatch_items di
+                ON d.id = di.dispatch_id
 
-        LEFT JOIN units u
-            ON p.unit_id = u.id
+            LEFT JOIN products p
+                ON di.product_id = p.id
 
-        WHERE 1=1
-    `;
+            LEFT JOIN units u
+                ON p.unit_id = u.id
 
-    const values = [];
-
-    // BILL FILTER
-    if (sell_bill_no) {
-
-        query += `
-            AND d.sell_bill_no LIKE ?
+            WHERE 1=1
         `;
 
-        values.push(`%${sell_bill_no}%`);
-    }
+        const values = [];
 
-    // DRIVER FILTER
-    if (driver_name) {
+        // BILL FILTER
+        if (sell_bill_no) {
+
+            query += `
+                AND d.sell_bill_no ILIKE $${values.length + 1}
+            `;
+
+            values.push(`%${sell_bill_no}%`);
+        }
+
+        // DRIVER FILTER
+        if (driver_name) {
+
+            query += `
+                AND d.driver_name ILIKE $${values.length + 1}
+            `;
+
+            values.push(`%${driver_name}%`);
+        }
+
+        // PRODUCT FILTER
+        if (product) {
+
+            query += `
+                AND p.name ILIKE $${values.length + 1}
+            `;
+
+            values.push(`%${product}%`);
+        }
+
+        // DATE FILTER
+        if (dispatch_date) {
+
+            query += `
+                AND DATE(d.dispatch_date) = $${values.length + 1}
+            `;
+
+            values.push(dispatch_date);
+        }
 
         query += `
-            AND d.driver_name LIKE ?
+            ORDER BY d.id DESC
         `;
 
-        values.push(`%${driver_name}%`);
+        const result =
+            await db.query(query, values);
+
+        return NextResponse.json(
+            result.rows
+        );
+
+    } catch (err) {
+
+        console.log(err);
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: err.message
+            },
+            { status: 500 }
+        );
     }
-
-    // PRODUCT FILTER
-    if (product) {
-
-        query += `
-            AND p.name LIKE ?
-        `;
-
-        values.push(`%${product}%`);
-    }
-
-    // DATE FILTER
-    if (dispatch_date) {
-
-        query += `
-            AND DATE(d.dispatch_date) = ?
-        `;
-
-        values.push(dispatch_date);
-    }
-
-    query += `
-        ORDER BY d.id DESC
-    `;
-
-    const [rows] =
-        await db.query(query, values);
-
-    return NextResponse.json(rows);
 }
 
 // ================= SAVE DISPATCH =================
@@ -123,51 +138,8 @@ export async function POST(req) {
                 formData.get("items")
             );
 
-        const file =
-            formData.get("bill_photo");
-
-        let photoPath = "";
-
-        // ================= FILE UPLOAD =================
-        if (file && file.name) {
-
-            const bytes =
-                await file.arrayBuffer();
-
-            const buffer =
-                Buffer.from(bytes);
-
-            const uploadDir =
-                path.join(
-                    process.cwd(),
-                    "public/uploads"
-                );
-
-            // CREATE FOLDER
-            if (!fs.existsSync(uploadDir)) {
-
-                fs.mkdirSync(uploadDir, {
-                    recursive: true
-                });
-            }
-
-            const fileName =
-                `${Date.now()}-${file.name}`;
-
-            const filePath =
-                path.join(uploadDir, fileName);
-
-            fs.writeFileSync(
-                filePath,
-                buffer
-            );
-
-            photoPath =
-                `/uploads/${fileName}`;
-        }
-
         // ================= INSERT DISPATCH =================
-        const [dispatchResult] =
+        const dispatchResult =
             await db.query(
                 `
                 INSERT INTO dispatches
@@ -177,18 +149,19 @@ export async function POST(req) {
                     driver_name,
                     bill_photo
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id
                 `,
                 [
                     sell_bill_no,
                     dispatch_date,
                     driver_name,
-                    photoPath
+                    ""
                 ]
             );
 
         const dispatch_id =
-            dispatchResult.insertId;
+            dispatchResult.rows[0].id;
 
         // ================= INSERT ITEMS =================
         for (const item of items) {
@@ -202,7 +175,7 @@ export async function POST(req) {
                     product_id,
                     quantity
                 )
-                VALUES (?, ?, ?)
+                VALUES ($1, $2, $3)
                 `,
                 [
                     dispatch_id,
@@ -216,8 +189,8 @@ export async function POST(req) {
                 `
                 UPDATE products
                 SET stock =
-                    stock - ?
-                WHERE id = ?
+                    stock - $1
+                WHERE id = $2
                 `,
                 [
                     item.quantity,
@@ -234,9 +207,12 @@ export async function POST(req) {
 
         console.log(err);
 
-        return NextResponse.json({
-            success: false,
-            error: err.message
-        });
+        return NextResponse.json(
+            {
+                success: false,
+                error: err.message
+            },
+            { status: 500 }
+        );
     }
 }

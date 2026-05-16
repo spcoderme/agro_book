@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 
@@ -19,15 +20,25 @@ export default function DispatchesPage() {
     // ================= LOAD DATA =================
     const loadData = async () => {
 
-        const query = new URLSearchParams(filters).toString();
+        try {
 
-        const res = await fetch(
-            `/api/dispatch?${query}`
-        );
+            const query =
+                new URLSearchParams(filters).toString();
 
-        const data = await res.json();
+            const res = await fetch(
+                `/api/dispatch?${query}`
+            );
 
-        setRows(data);
+            const data = await res.json();
+
+            setRows(Array.isArray(data) ? data : []);
+
+        } catch (err) {
+
+            console.log(err);
+
+            alert("Failed to load dispatches");
+        }
     };
 
     useEffect(() => {
@@ -38,18 +49,67 @@ export default function DispatchesPage() {
 
     return (
 
-        <div className="p-5">
+        <div className="w-full max-w-7xl mx-auto px-3 py-4 md:px-6">
 
-            <h1 className="text-2xl font-bold mb-5">
-                Dispatch Entries
-            </h1>
+            {/* ================= HEADER ================= */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
 
-            {/* FILTERS */}
-            <div className="grid grid-cols-4 gap-4 mb-5">
+                <div>
+
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Dispatch Entries
+                    </h1>
+
+                    <p className="text-sm text-gray-500">
+                        View all dispatch transactions
+                    </p>
+
+                </div>
+
+                <Link
+                    href="/dashboard"
+                    className="
+                        bg-gray-700
+                        hover:bg-black
+                        text-white
+                        px-4
+                        py-2
+                        rounded-xl
+                        text-sm
+                        w-fit
+                    "
+                >
+                    ← Dashboard
+                </Link>
+
+            </div>
+
+            {/* ================= FILTERS ================= */}
+            <div
+                className="
+                    grid
+                    grid-cols-1
+                    md:grid-cols-2
+                    lg:grid-cols-4
+                    gap-4
+                    mb-5
+                    relative
+                    z-20
+                "
+            >
 
                 {/* BILL NO */}
                 <input
-                    className="input"
+                    className="
+                        w-full
+                        border
+                        rounded-xl
+                        px-4
+                        py-3
+                        outline-none
+                        focus:ring-2
+                        focus:ring-blue-500
+                    "
                     placeholder="Sell Bill No"
                     value={filters.sell_bill_no}
                     onChange={e =>
@@ -62,7 +122,16 @@ export default function DispatchesPage() {
 
                 {/* DRIVER */}
                 <input
-                    className="input"
+                    className="
+                        w-full
+                        border
+                        rounded-xl
+                        px-4
+                        py-3
+                        outline-none
+                        focus:ring-2
+                        focus:ring-blue-500
+                    "
                     placeholder="Driver Name"
                     value={filters.driver_name}
                     onChange={e =>
@@ -75,7 +144,16 @@ export default function DispatchesPage() {
 
                 {/* PRODUCT */}
                 <input
-                    className="input"
+                    className="
+                        w-full
+                        border
+                        rounded-xl
+                        px-4
+                        py-3
+                        outline-none
+                        focus:ring-2
+                        focus:ring-blue-500
+                    "
                     placeholder="Product"
                     value={filters.product}
                     onChange={e =>
@@ -87,81 +165,147 @@ export default function DispatchesPage() {
                 />
 
                 {/* DATE */}
-                <DatePicker
-                    selected={
-                        filters.dispatch_date
-                            ? new Date(
-                                filters.dispatch_date.split("-")[0],
-                                filters.dispatch_date.split("-")[1] - 1,
-                                filters.dispatch_date.split("-")[2]
-                            )
-                            : null
-                    }
-                    onChange={(date) => {
+                <div className="relative z-[9999]">
 
-                        if (!date) return;
+                    <DatePicker
+                        selected={
+                            filters.dispatch_date
+                                ? new Date(
+                                      filters.dispatch_date.split("-")[0],
+                                      filters.dispatch_date.split("-")[1] - 1,
+                                      filters.dispatch_date.split("-")[2]
+                                  )
+                                : null
+                        }
 
-                        const year = date.getFullYear();
+                        onChange={(date) => {
 
-                        const month = String(
-                            date.getMonth() + 1
-                        ).padStart(2, "0");
+                            if (!date) {
 
-                        const day = String(
-                            date.getDate()
-                        ).padStart(2, "0");
+                                setFilters({
+                                    ...filters,
+                                    dispatch_date: ""
+                                });
 
-                        setFilters({
-                            ...filters,
-                            dispatch_date:
-                                `${year}-${month}-${day}`
-                        });
-                    }}
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="Dispatch Date"
-                    className="input w-full"
-                />
+                                return;
+                            }
+
+                            const year =
+                                date.getFullYear();
+
+                            const month = String(
+                                date.getMonth() + 1
+                            ).padStart(2, "0");
+
+                            const day = String(
+                                date.getDate()
+                            ).padStart(2, "0");
+
+                            setFilters({
+                                ...filters,
+                                dispatch_date:
+                                    `${year}-${month}-${day}`
+                            });
+                        }}
+
+                        dateFormat="dd/MM/yyyy"
+
+                        placeholderText="Dispatch Date"
+
+                        className="
+                            w-full
+                            border
+                            rounded-xl
+                            px-4
+                            py-3
+                            outline-none
+                            focus:ring-2
+                            focus:ring-blue-500
+                        "
+
+                        popperClassName="z-[99999]"
+
+                        portalId="root-portal"
+                    />
+
+                </div>
 
             </div>
 
-            {/* SEARCH BUTTON */}
-            <button
-                onClick={loadData}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-5"
+            {/* ================= SEARCH BUTTON ================= */}
+            <div className="mb-5">
+
+                <button
+                    onClick={loadData}
+                    className="
+                        bg-blue-600
+                        hover:bg-blue-700
+                        text-white
+                        px-5
+                        py-3
+                        rounded-xl
+                        font-medium
+                        transition
+                        w-full
+                        sm:w-auto
+                    "
+                >
+                    Search
+                </button>
+
+            </div>
+
+            {/* ================= TABLE ================= */}
+            <div
+                className="
+                    overflow-x-auto
+                    border
+                    rounded-xl
+                    bg-white
+                    shadow-sm
+                "
             >
-                Search
-            </button>
 
-            {/* TABLE */}
-            <div className="overflow-auto border rounded">
+                <table
+                    className="
+                        min-w-[900px]
+                        w-full
+                        text-sm
+                    "
+                >
 
-                <table className="w-full border border-separate text-sm">
-
-                    <thead className="bg-gray-200">
+                    <thead
+                        className="
+                            bg-gray-100
+                            sticky
+                            top-0
+                            z-10
+                        "
+                    >
 
                         <tr>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-left">
                                 Bill No
                             </th>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-left">
                                 Date
                             </th>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-left">
                                 Driver
                             </th>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-left">
                                 Product
                             </th>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-center">
                                 Dispatch Qty
                             </th>
 
-                            <th className="border p-2">
+                            <th className="border p-3 text-center">
                                 Bill Photo
                             </th>
 
@@ -171,82 +315,143 @@ export default function DispatchesPage() {
 
                     <tbody>
 
-                        {rows.map((r, i) => (
+                        {
+                            rows.length > 0 ? (
 
-                            <tr
-                                key={i}
-                                className="hover:bg-gray-50"
-                            >
+                                rows.map((r, i) => (
 
-                                {/* BILL */}
-                                <td className="border p-2">
-                                    {r.sell_bill_no}
-                                </td>
+                                    <tr
+                                        key={i}
+                                        className="
+                                            hover:bg-gray-50
+                                            transition
+                                        "
+                                    >
 
-                                {/* DATE */}
-                                <td className="border p-2">
+                                        {/* BILL */}
+                                        <td className="border p-3">
 
-                                    {new Date(
-                                        r.dispatch_date
-                                    ).toLocaleDateString(
-                                        "en-GB"
-                                    )}
+                                            {r.sell_bill_no || "-"}
 
-                                </td>
+                                        </td>
 
-                                {/* DRIVER */}
-                                <td className="border p-2">
-                                    {r.driver_name}
-                                </td>
+                                        {/* DATE */}
+                                        <td className="border p-3">
 
-                                {/* PRODUCT */}
-                                <td className="border p-2">
+                                            {
+                                                r.dispatch_date
+                                                    ? new Date(
+                                                          r.dispatch_date
+                                                      ).toLocaleDateString(
+                                                          "en-GB"
+                                                      )
+                                                    : "-"
+                                            }
 
-                                    {r.product_name}
-                                    {" "}
-                                    ({parseFloat(r.unit_value)}
-                                    {r.unit_name})
+                                        </td>
 
-                                </td>
+                                        {/* DRIVER */}
+                                        <td className="border p-3">
 
-                                {/* QTY */}
-                                <td className="border p-2 text-center">
+                                            {r.driver_name || "-"}
 
-                                    {parseFloat(r.quantity)}
+                                        </td>
 
-                                </td>
+                                        {/* PRODUCT */}
+                                        <td className="border p-3">
 
-                                {/* PHOTO */}
-                                <td className="border p-2 text-center">
+                                            <div className="font-medium">
 
-                                    {r.bill_photo ? (
+                                                {r.product_name}
 
-                                        <a
-                                            href={r.bill_photo}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
+                                            </div>
 
-                                            <img
-                                                src={r.bill_photo}
-                                                alt="Bill"
-                                                className="w-20 h-20 object-cover rounded border hover:scale-105 transition"
-                                            />
+                                            <div className="text-xs text-gray-500 mt-1">
 
-                                        </a>
+                                                {parseFloat(
+                                                    r.unit_value || 0
+                                                )}
+                                                {r.unit_name}
 
-                                    ) : (
+                                            </div>
 
-                                        <span className="text-gray-400">
-                                            No Image
-                                        </span>
+                                        </td>
 
-                                    )}
+                                        {/* QTY */}
+                                        <td className="border p-3 text-center font-semibold">
 
-                                </td>
+                                            {
+                                                parseFloat(
+                                                    r.quantity || 0
+                                                )
+                                            }
 
-                            </tr>
-                        ))}
+                                        </td>
+
+                                        {/* PHOTO */}
+                                        <td className="border p-3 text-center">
+
+                                            {
+                                                r.bill_photo ? (
+
+                                                    <a
+                                                        href={r.bill_photo}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+
+                                                        <img
+                                                            src={r.bill_photo}
+                                                            alt="Bill"
+                                                            className="
+                                                                w-16
+                                                                h-16
+                                                                md:w-20
+                                                                md:h-20
+                                                                object-cover
+                                                                rounded-lg
+                                                                border
+                                                                mx-auto
+                                                                hover:scale-105
+                                                                transition
+                                                            "
+                                                        />
+
+                                                    </a>
+
+                                                ) : (
+
+                                                    <span className="text-gray-400 text-xs">
+                                                        No Image
+                                                    </span>
+
+                                                )
+                                            }
+
+                                        </td>
+
+                                    </tr>
+                                ))
+
+                            ) : (
+
+                                <tr>
+
+                                    <td
+                                        colSpan={6}
+                                        className="
+                                            text-center
+                                            py-10
+                                            text-gray-500
+                                            bg-gray-200
+                                        "
+                                    >
+                                        No Dispatch Entries Found
+                                    </td>
+
+                                </tr>
+                            )
+                        }
 
                     </tbody>
 

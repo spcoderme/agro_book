@@ -1,12 +1,13 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// CREATE
+// ================= CREATE =================
 export async function POST(req) {
 
     try {
 
-        const data = await req.json();
+        const data =
+            await req.json();
 
         const {
             name,
@@ -24,7 +25,7 @@ export async function POST(req) {
                 address,
                 gst_no
             )
-            VALUES (?, ?, ?, ?)
+            VALUES ($1, $2, $3, $4)
             `,
             [
                 name,
@@ -40,60 +41,86 @@ export async function POST(req) {
 
     } catch (err) {
 
-        console.log(err);
+        console.log(
+            "CREATE VENDOR ERROR:",
+            err
+        );
 
         return NextResponse.json(
-            { error: "Failed to create vendor" },
-            { status: 500 }
+            {
+                error:
+                    "Failed to create vendor"
+            },
+            {
+                status: 500
+            }
         );
     }
 }
 
-// GET SINGLE
-export async function GET(req, context) {
+// ================= GET SINGLE =================
+export async function GET(req, { params }) {
 
     try {
 
-        const { id } = await context.params;
+        const { id } = params;
 
-        const [rows] = await db.query(
-            `
-            SELECT *
-            FROM vendors
-            WHERE id = ?
-            `,
-            [id]
-        );
+        const result =
+            await db.query(
+                `
+                SELECT *
+                FROM vendors
+                WHERE id = $1
+                `,
+                [id]
+            );
 
-        if (rows.length === 0) {
+        if (
+            result.rows.length === 0
+        ) {
 
             return NextResponse.json(
-                { error: "Vendor not found" },
-                { status: 404 }
+                {
+                    error:
+                        "Vendor not found"
+                },
+                {
+                    status: 404
+                }
             );
         }
 
-        return NextResponse.json(rows[0]);
+        return NextResponse.json(
+            result.rows[0]
+        );
 
     } catch (err) {
 
-        console.log(err);
+        console.log(
+            "GET VENDOR ERROR:",
+            err
+        );
 
         return NextResponse.json(
-            { error: "Failed" },
-            { status: 500 }
+            {
+                error: "Failed"
+            },
+            {
+                status: 500
+            }
         );
     }
 }
 
-// UPDATE
-export async function PUT(req, context) {
+// ================= UPDATE =================
+export async function PUT(req, { params }) {
 
     try {
 
-        const { id } = await context.params;
+        const { id } = params;
 
-        const data = await req.json();
+        const data =
+            await req.json();
 
         const {
             name,
@@ -106,11 +133,11 @@ export async function PUT(req, context) {
             `
             UPDATE vendors
             SET
-                name = ?,
-                mobile = ?,
-                address = ?,
-                gst_no = ?
-            WHERE id = ?
+                name = $1,
+                mobile = $2,
+                address = $3,
+                gst_no = $4
+            WHERE id = $5
             `,
             [
                 name,
@@ -127,26 +154,34 @@ export async function PUT(req, context) {
 
     } catch (err) {
 
-        console.log(err);
+        console.log(
+            "UPDATE VENDOR ERROR:",
+            err
+        );
 
         return NextResponse.json(
-            { error: "Update failed" },
-            { status: 500 }
+            {
+                error:
+                    "Update failed"
+            },
+            {
+                status: 500
+            }
         );
     }
 }
 
-// DELETE
-export async function DELETE(req, context) {
+// ================= DELETE =================
+export async function DELETE(req, { params }) {
 
     try {
 
-        const { id } = await context.params;
+        const { id } = params;
 
         await db.query(
             `
             DELETE FROM vendors
-            WHERE id = ?
+            WHERE id = $1
             `,
             [id]
         );
@@ -157,11 +192,19 @@ export async function DELETE(req, context) {
 
     } catch (err) {
 
-        console.log(err);
+        console.log(
+            "DELETE VENDOR ERROR:",
+            err
+        );
 
         return NextResponse.json(
-            { error: "Delete failed" },
-            { status: 500 }
+            {
+                error:
+                    "Delete failed"
+            },
+            {
+                status: 500
+            }
         );
     }
 }

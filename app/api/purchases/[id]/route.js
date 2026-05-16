@@ -2,40 +2,46 @@ import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // ================= GET SINGLE PURCHASE =================
-export async function GET(req, context) {
+export async function GET(req, { params }) {
 
     try {
 
-        const { id } = await context.params;
+        const { id } = params;
 
         // PURCHASE HEADER
-        const [purchaseRows] = await db.query(`
-    SELECT 
-    p.id,
-    p.bill_no,
-    p.dc_no,
-    p.vendor_id,
+        const purchaseResult = await db.query(
+            `
+            SELECT
+                p.id,
+                p.bill_no,
+                p.dc_no,
+                p.vendor_id,
 
-    DATE_FORMAT(
-        p.purchase_date,
-        '%Y-%m-%d'
-    ) AS purchase_date,
+                TO_CHAR(
+                    p.purchase_date,
+                    'YYYY-MM-DD'
+                ) AS purchase_date,
 
-    p.hamali,
-    p.grand_total,
-    p.payment_status,
-    p.notes,
-    p.created_at,
+                p.hamali,
+                p.grand_total,
+                p.payment_status,
+                p.notes,
+                p.created_at,
 
-    v.name AS vendor_name
+                v.name AS vendor_name
 
-FROM purchases p
+            FROM purchases p
 
-LEFT JOIN vendors v
-    ON v.id = p.vendor_id
+            LEFT JOIN vendors v
+                ON v.id = p.vendor_id
 
-WHERE p.id = ?
-`, [id]);                                                                                                                                                                                                                                                                                                                           
+            WHERE p.id = $1
+            `,
+            [id]
+        );
+
+        const purchaseRows =
+            purchaseResult.rows;
 
         if (purchaseRows.length === 0) {
 
@@ -46,27 +52,33 @@ WHERE p.id = ?
         }
 
         // PURCHASE ITEMS
-        const [itemRows] = await db.query(
+        const itemResult = await db.query(
             `
             SELECT
                 pi.*,
                 pr.name AS product_name
+
             FROM purchase_items pi
+
             LEFT JOIN products pr
-            ON pi.product_id = pr.id
-            WHERE pi.purchase_id = ?
+                ON pi.product_id = pr.id
+
+            WHERE pi.purchase_id = $1
             `,
             [id]
         );
 
         return NextResponse.json({
             purchase: purchaseRows[0],
-            items: itemRows
+            items: itemResult.rows
         });
 
     } catch (err) {
 
-        console.log("GET PURCHASE ERROR:", err);
+        console.log(
+            "GET PURCHASE ERROR:",
+            err
+        );
 
         return NextResponse.json(
             { error: "Failed to fetch purchase" },
@@ -77,11 +89,11 @@ WHERE p.id = ?
 
 
 // ================= UPDATE PURCHASE =================
-export async function PUT(req, context) {
+export async function PUT(req, { params }) {
 
     try {
 
-        const { id } = await context.params;
+        const { id } = params;
 
         const data = await req.json();
 
@@ -92,7 +104,7 @@ export async function PUT(req, context) {
             vendor_id,
             hamali,
             payment_status,
-    notes,
+            notes,
             items,
             summary
         } = data;
@@ -102,15 +114,15 @@ export async function PUT(req, context) {
             `
             UPDATE purchases
             SET
-                bill_no = ?,
-                dc_no = ?,
-                vendor_id = ?,
-                purchase_date = ?,
-                hamali = ?,
-                grand_total = ?,
-                payment_status = ?,
-    notes = ?
-            WHERE id = ?
+                bill_no = $1,
+                dc_no = $2,
+                vendor_id = $3,
+                purchase_date = $4,
+                hamali = $5,
+                grand_total = $6,
+                payment_status = $7,
+                notes = $8
+            WHERE id = $9
             `,
             [
                 bill_no,
@@ -129,7 +141,7 @@ export async function PUT(req, context) {
         await db.query(
             `
             DELETE FROM purchase_items
-            WHERE purchase_id = ?
+            WHERE purchase_id = $1
             `,
             [id]
         );
@@ -137,19 +149,25 @@ export async function PUT(req, context) {
         // INSERT NEW ITEMS
         for (let item of items) {
 
-            const qty = Number(item.quantity) || 0;
+            const qty =
+                Number(item.quantity) || 0;
 
-            const rate = Number(item.rate) || 0;
+            const rate =
+                Number(item.rate) || 0;
 
-            const tax = Number(item.tax_percent) || 0;
+            const tax =
+                Number(item.tax_percent) || 0;
 
             const base = qty * rate;
 
-            const cgst = (base * tax) / 200;
+            const cgst =
+                (base * tax) / 200;
 
-            const sgst = (base * tax) / 200;
+            const sgst =
+                (base * tax) / 200;
 
-            const total = base + cgst + sgst;
+            const total =
+                base + cgst + sgst;
 
             await db.query(
                 `
@@ -168,7 +186,11 @@ export async function PUT(req, context) {
                     sgst,
                     total
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES
+                (
+                    $1,$2,$3,$4,$5,$6,
+                    $7,$8,$9,$10,$11,$12
+                )
                 `,
                 [
                     id,
@@ -193,7 +215,10 @@ export async function PUT(req, context) {
 
     } catch (err) {
 
-        console.log("UPDATE ERROR:", err);
+        console.log(
+            "UPDATE ERROR:",
+            err
+        );
 
         return NextResponse.json(
             { error: "Failed to update purchase" },

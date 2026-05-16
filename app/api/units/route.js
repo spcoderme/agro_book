@@ -2,6 +2,28 @@ import db from "../../../lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const [rows] = await db.query("SELECT * FROM units");
-  return NextResponse.json(rows);
+
+    try {
+
+        const result = await db.query(
+            "SELECT * FROM units ORDER BY id DESC"
+        );
+
+        return NextResponse.json(
+            result.rows
+        );
+
+    } catch (err) {
+
+        console.log("UNITS ERROR:", err);
+
+        return NextResponse.json(
+            {
+                error: "Failed to fetch units"
+            },
+            {
+                status: 500
+            }
+        );
+    }
 }

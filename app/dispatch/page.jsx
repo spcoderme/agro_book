@@ -1,51 +1,94 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
+import dynamic from "next/dynamic";
 
 import "react-datepicker/dist/react-datepicker.css";
-import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const Select = dynamic(
     () => import("react-select"),
     { ssr: false }
 );
 
+const DatePicker = dynamic(
+    () => import("react-datepicker"),
+    { ssr: false }
+);
+
 export default function DispatchPage() {
 
-    const [products, setProducts] = useState([]);
+    // ================= HYDRATION SAFE =================
+    const [mounted, setMounted] =
+        useState(false);
 
-    const [form, setForm] = useState({
-        sell_bill_no: "",
-        dispatch_date: "",
-        driver_name: "",
-        bill_photo: null
-    });
+    // ================= PRODUCTS =================
+    const [products, setProducts] =
+        useState([]);
 
-    const [items, setItems] = useState([
-        {
-            product_id: "",
-            product_name: "",
-            stock: 0,
-            quantity: ""
-        }
-    ]);
+    // ================= FORM =================
+    const [form, setForm] =
+        useState({
+            sell_bill_no: "",
+            dispatch_date: "",
+            driver_name: "",
+            bill_photo: null
+        });
 
-    // ================= LOAD PRODUCTS =================
+    // ================= ITEMS =================
+    const [items, setItems] =
+        useState([
+            {
+                product_id: "",
+                product_name: "",
+                stock: 0,
+                quantity: "",
+                unit_value: "",
+                unit_name: ""
+            }
+        ]);
+
+    // ================= MOUNT =================
     useEffect(() => {
+
+        setMounted(true);
 
         fetch("/api/products")
             .then(res => res.json())
-            .then(setProducts);
+            .then(data => {
+
+                if (Array.isArray(data)) {
+                    setProducts(data);
+                } else {
+                    setProducts([]);
+                }
+            })
+            .catch(err => {
+
+                console.log(err);
+
+                setProducts([]);
+            });
 
     }, []);
 
+    // ================= HYDRATION FIX =================
+    if (!mounted) {
+        return null;
+    }
+
     // ================= UPDATE ITEM =================
-    const updateItem = (i, key, value) => {
+    const updateItem = (
+        index,
+        key,
+        value
+    ) => {
 
-        const updated = [...items];
+        const updated =
+            [...items];
 
-        updated[i][key] = value;
+        updated[index][key] =
+            value;
 
         setItems(updated);
     };
@@ -59,7 +102,9 @@ export default function DispatchPage() {
                 product_id: "",
                 product_name: "",
                 stock: 0,
-                quantity: ""
+                quantity: "",
+                unit_value: "",
+                unit_name: ""
             }
         ]);
     };
@@ -67,7 +112,10 @@ export default function DispatchPage() {
     // ================= REMOVE ROW =================
     const removeRow = (index) => {
 
-        const updated = items.filter((_, i) => i !== index);
+        const updated =
+            items.filter(
+                (_, i) => i !== index
+            );
 
         setItems(updated);
     };
@@ -77,157 +125,208 @@ export default function DispatchPage() {
 
         e.preventDefault();
 
-        const formData = new FormData();
+        try {
 
-        formData.append(
-            "sell_bill_no",
-            form.sell_bill_no
-        );
-
-        formData.append(
-            "dispatch_date",
-            form.dispatch_date
-        );
-
-        formData.append(
-            "driver_name",
-            form.driver_name
-        );
-
-        formData.append(
-            "items",
-            JSON.stringify(items)
-        );
-
-        if (form.bill_photo) {
+            const formData =
+                new FormData();
 
             formData.append(
-                "bill_photo",
-                form.bill_photo
+                "sell_bill_no",
+                form.sell_bill_no
             );
-        }
 
-        const res = await fetch(
-            "/api/dispatch",
-            {
-                method: "POST",
-                body: formData
+            formData.append(
+                "dispatch_date",
+                form.dispatch_date
+            );
+
+            formData.append(
+                "driver_name",
+                form.driver_name
+            );
+
+            formData.append(
+                "items",
+                JSON.stringify(items)
+            );
+
+            if (form.bill_photo) {
+
+                formData.append(
+                    "bill_photo",
+                    form.bill_photo
+                );
             }
-        );
 
-        const data = await res.json();
+            const res =
+                await fetch(
+                    "/api/dispatch",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
 
-        if (data.success) {
+            const data =
+                await res.json();
 
-            alert("Dispatch Saved ✅");
+            if (data.success) {
 
-            // RESET FORM
-            setForm({
-                sell_bill_no: "",
-                dispatch_date: "",
-                driver_name: "",
-                bill_photo: null
-            });
+                alert(
+                    "Dispatch Saved ✅"
+                );
 
-            setItems([
-                {
-                    product_id: "",
-                    product_name: "",
-                    stock: 0,
-                    quantity: ""
-                }
-            ]);
+                setForm({
+                    sell_bill_no: "",
+                    dispatch_date: "",
+                    driver_name: "",
+                    bill_photo: null
+                });
 
-        } else {
+                setItems([
+                    {
+                        product_id: "",
+                        product_name: "",
+                        stock: 0,
+                        quantity: "",
+                        unit_value: "",
+                        unit_name: ""
+                    }
+                ]);
 
-            alert(data.error || "Failed");
+            } else {
+
+                alert(
+                    data.error || "Failed"
+                );
+            }
+
+        } catch (err) {
+
+            console.log(err);
+
+            alert(
+                "Something went wrong"
+            );
         }
     };
 
     return (
 
-        <div className="p-5">
+        <div className="w-full max-w-7xl mx-auto px-3 py-4 md:px-6">
 
-            <h1 className="text-2xl font-bold mb-5">
-                Dispatch Product
-            </h1>
+            
+
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-5">
+
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                    Dispatch Product
+                </h1>
+
+                <p className="text-sm text-gray-500 mt-1">
+                    Manage outgoing stock dispatch
+                </p>
+
+                {/* DASHBOARD BUTTON */}
+                <Link href="/dashboard" className="bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-xl text-sm w-fit"
+                >
+                    ← Dashboard
+                </Link>
+
+            </div>
 
             <form onSubmit={handleSubmit}>
 
-                {/* HEADER */}
-                <div className="grid grid-cols-4 gap-4 mb-5">
+                {/* TOP FORM */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
 
-                    {/* SELL BILL */}
+                    {/* BILL */}
                     <input
-                        className="input"
+                        className="input w-full"
                         placeholder="Sell Bill No"
                         value={form.sell_bill_no}
                         onChange={e =>
                             setForm({
                                 ...form,
-                                sell_bill_no: e.target.value
+                                sell_bill_no:
+                                    e.target.value
                             })
                         }
                     />
 
                     {/* DATE */}
-                    <DatePicker
-                        selected={
-                            form.dispatch_date
-                                ? new Date(
-                                    form.dispatch_date.split("-")[0],
-                                    form.dispatch_date.split("-")[1] - 1,
-                                    form.dispatch_date.split("-")[2]
-                                )
-                                : null
-                        }
-                        onChange={(date) => {
+                    <div className="relative z-[9999]">
 
-                            if (!date) return;
+    <DatePicker
+        selected={
+            form.dispatch_date
+                ? new Date(
+                    form.dispatch_date.split("-")[0],
+                    form.dispatch_date.split("-")[1] - 1,
+                    form.dispatch_date.split("-")[2]
+                )
+                : null
+        }
 
-                            const year = date.getFullYear();
+        onChange={(date) => {
 
-                            const month = String(
-                                date.getMonth() + 1
-                            ).padStart(2, "0");
+            if (!date) return;
 
-                            const day = String(
-                                date.getDate()
-                            ).padStart(2, "0");
+            const year = date.getFullYear();
 
-                            setForm({
-                                ...form,
-                                dispatch_date:
-                                    `${year}-${month}-${day}`
-                            });
-                        }}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Dispatch Date"
-                        className="input w-full"
-                    />
+            const month = String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+            const day = String(
+                date.getDate()
+            ).padStart(2, "0");
+
+            setForm({
+                ...form,
+                dispatch_date:
+                    `${year}-${month}-${day}`
+            });
+        }}
+
+        dateFormat="dd/MM/yyyy"
+
+        placeholderText="Dispatch Date"
+
+        className="input w-full"
+
+        popperClassName="datepicker-zindex"
+
+        portalId="root-portal"
+    />
+
+</div>
 
                     {/* DRIVER */}
                     <input
-                        className="input"
+                        className="input w-full"
                         placeholder="Driver Name"
                         value={form.driver_name}
                         onChange={e =>
                             setForm({
                                 ...form,
-                                driver_name: e.target.value
+                                driver_name:
+                                    e.target.value
                             })
                         }
                     />
 
-                    {/* BILL PHOTO */}
+                    {/* FILE */}
                     <input
                         type="file"
-                        className="input"
+                        className="input w-full"
                         accept="image/*"
                         onChange={e =>
                             setForm({
                                 ...form,
-                                bill_photo: e.target.files[0]
+                                bill_photo:
+                                    e.target.files[0]
                             })
                         }
                     />
@@ -235,31 +334,31 @@ export default function DispatchPage() {
                 </div>
 
                 {/* TABLE */}
-                <div className="overflow-auto border rounded">
+                <div className="overflow-x-auto border rounded-xl bg-white shadow-sm">
 
-                    <table className="w-full border border-separate text-sm">
+                    <table className="min-w-[900px] w-full text-sm">
 
-                        <thead className="bg-gray-200">
+                        <thead className="bg-gray-100 sticky top-0 z-10">
 
                             <tr>
 
-                                <th className="border p-2">
+                                <th className="border p-3 text-left">
                                     Product
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3 text-center">
                                     Current Stock
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3 text-center">
                                     Dispatch Qty
                                 </th>
 
-                                <th className="border p-2">
-                                    Remaining Stock
+                                <th className="border p-3 text-center">
+                                    Remaining
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3 text-center">
                                     Action
                                 </th>
 
@@ -272,85 +371,112 @@ export default function DispatchPage() {
                             {items.map((item, i) => {
 
                                 const stock =
-                                    Number(item.stock) || 0;
+                                    Number(
+                                        item.stock
+                                    ) || 0;
 
                                 const qty =
-                                    Number(item.quantity) || 0;
+                                    Number(
+                                        item.quantity
+                                    ) || 0;
 
                                 const remaining =
                                     stock - qty;
 
                                 return (
 
-                                    <tr key={i}>
+                                    <tr
+                                        key={i}
+                                        className="hover:bg-gray-50"
+                                    >
 
                                         {/* PRODUCT */}
-                                        <td className="border p-2">
+                                        <td className="border p-2 min-w-[320px]">
 
-    <Select
-    placeholder="Search Product..."
-    isSearchable
+                                            <Select
+                                                placeholder="Search Product..."
 
-    menuPortalTarget={
-        typeof window !== "undefined"
-            ? document.body
-            : null
-    }
+                                                isSearchable
 
-    menuPosition="fixed"
+                                                menuPortalTarget={
+                                                    typeof window !== "undefined"
+                                                        ? document.body
+                                                        : null
+                                                }
 
-    styles={{
-        menuPortal: base => ({
-            ...base,
-            zIndex: 9999
-        })
-    }}
+                                                menuPosition="fixed"
 
-    options={products.map(p => ({
-        value: p.id,
-        label:
-            `${p.name} (${parseFloat(p.unit_value)}${p.unit_name}) [Stock: ${parseFloat(p.stock)}]`,
-        product: p
-    }))}
+                                                styles={{
+                                                    menuPortal: base => ({
+                                                        ...base,
+                                                        zIndex: 9999
+                                                    })
+                                                }}
 
-    value={
-        item.product_id
-            ? {
-                value: item.product_id,
-                label:
-                    `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit_name || ""}) [Stock: ${parseFloat(item.stock || 0)}]`
-            }
-            : null
-    }
+                                                options={products.map(p => ({
+                                                    value: p.id,
 
-    onChange={(selectedOption) => {
+                                                    label:
+                                                        `${p.name} (${parseFloat(p.unit_value || 0)}${p.unit_name || ""}) [Stock: ${parseFloat(p.stock || 0)}]`,
 
-        if (!selectedOption) return;
+                                                    product: p
+                                                }))}
 
-        const selected =
-            selectedOption.product;
+                                                value={
+                                                    item.product_id
+                                                        ? {
+                                                            value:
+                                                                item.product_id,
 
-        const updated = [...items];
+                                                            label:
+                                                                `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit_name || ""}) [Stock: ${parseFloat(item.stock || 0)}]`
+                                                        }
+                                                        : null
+                                                }
 
-        updated[i] = {
-            ...updated[i],
-            product_id: selected.id,
-            product_name: selected.name,
-            stock: selected.stock,
-            unit_value: selected.unit_value,
-            unit_name: selected.unit_name
-        };
+                                                onChange={(selectedOption) => {
 
-        setItems(updated);
-    }}
-/>
+                                                    if (!selectedOption) return;
 
-</td>
+                                                    const selected =
+                                                        selectedOption.product;
+
+                                                    const updated =
+                                                        [...items];
+
+                                                    updated[i] = {
+                                                        ...updated[i],
+
+                                                        product_id:
+                                                            selected.id,
+
+                                                        product_name:
+                                                            selected.name,
+
+                                                        stock:
+                                                            selected.stock,
+
+                                                        unit_value:
+                                                            selected.unit_value,
+
+                                                        unit_name:
+                                                            selected.unit_name
+                                                    };
+
+                                                    setItems(updated);
+                                                }}
+                                            />
+
+                                        </td>
 
                                         {/* STOCK */}
-                                        <td className="border p-2 text-center font-medium">
+                                        <td className="border p-2 text-center font-semibold">
 
-                                            {parseFloat(item.stock || 0)}
+                                            {
+                                                parseFloat(
+                                                    item.stock || 0
+                                                )
+                                            }
 
                                         </td>
 
@@ -359,9 +485,15 @@ export default function DispatchPage() {
 
                                             <input
                                                 type="number"
+
                                                 min="0"
-                                                className="input"
+
+                                                max={item.stock}
+
+                                                className="input w-full"
+
                                                 value={item.quantity}
+
                                                 onChange={e =>
                                                     updateItem(
                                                         i,
@@ -380,7 +512,7 @@ export default function DispatchPage() {
                                                 className={
                                                     remaining < 0
                                                         ? "text-red-600 font-bold"
-                                                        : "text-green-700 font-semibold"
+                                                        : "text-green-700 font-bold"
                                                 }
                                             >
                                                 {remaining}
@@ -388,13 +520,17 @@ export default function DispatchPage() {
 
                                         </td>
 
-                                        {/* ACTION */}
+                                        {/* REMOVE */}
                                         <td className="border p-2 text-center">
 
                                             <button
                                                 type="button"
-                                                onClick={() => removeRow(i)}
-                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+
+                                                onClick={() =>
+                                                    removeRow(i)
+                                                }
+
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-xs"
                                             >
                                                 Remove
                                             </button>
@@ -411,22 +547,28 @@ export default function DispatchPage() {
 
                 </div>
 
-                {/* ADD ROW */}
-                <button
-                    type="button"
-                    onClick={addRow}
-                    className="mt-3 bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded"
-                >
-                    + Add Row
-                </button>
+                {/* BUTTONS */}
+                <div className="mt-5 flex flex-col sm:flex-row gap-3">
 
-                {/* SUBMIT */}
-                <button
-                    type="submit"
-                    className="mt-5 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
-                >
-                    Save Dispatch
-                </button>
+                    <button
+                        type="button"
+
+                        onClick={addRow}
+
+                        className="bg-gray-300 hover:bg-gray-400 px-4 py-3 rounded-xl font-medium"
+                    >
+                        + Add Row
+                    </button>
+
+                    <button
+                        type="submit"
+
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl font-medium"
+                    >
+                        Save Dispatch
+                    </button>
+
+                </div>
 
             </form>
 

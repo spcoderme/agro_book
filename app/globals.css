@@ -133,3 +133,15 @@ body {
 .react-datepicker__input-container input {
   width: 100%;
 }
+
+.datepicker-zindex {
+    z-index: 99999 !important;
+}
+
+.react-datepicker-popper {
+    z-index: 99999 !important;
+}
+
+.react-datepicker {
+    font-size: 14px;
+}
