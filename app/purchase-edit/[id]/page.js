@@ -15,6 +15,7 @@ export default function PurchaseEditPage() {
     const [vendors, setVendors] = useState([]);
 
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
     const [form, setForm] = useState({
         bill_no: "",
@@ -37,11 +38,11 @@ export default function PurchaseEditPage() {
 
         fetch("/api/products")
             .then(res => res.json())
-            .then(setProducts);
+            .then(data => setProducts(Array.isArray(data) ? data : []));
 
         fetch("/api/vendors")
             .then(res => res.json())
-            .then(setVendors);
+            .then(data => setVendors(Array.isArray(data) ? data : []));
 
     }, [params?.id]);
 
@@ -50,14 +51,14 @@ export default function PurchaseEditPage() {
 
         try {
 
-            const res = await fetch(`/api/purchases/${params.id}`);
+            const res =
+                await fetch(`/api/purchases/${params.id}`);
 
             const data = await res.json();
 
             if (!data.purchase) {
 
                 alert("Purchase not found");
-
                 return;
             }
 
@@ -66,15 +67,42 @@ export default function PurchaseEditPage() {
                 dc_no: data.purchase.dc_no || "",
                 purchase_date:
                     data.purchase.purchase_date?.split("T")[0] || "",
-                vendor_id: data.purchase.vendor_id || "",
-                hamali: data.purchase.hamali || 0,
+                vendor_id:
+                    data.purchase.vendor_id || "",
+                hamali:
+                    data.purchase.hamali || 0,
                 payment_status:
                     data.purchase.payment_status || "pending",
                 notes:
                     data.purchase.notes || ""
             });
 
-            setItems(data.items || []);
+            // FIX CONTROLLED INPUT WARNING
+            const formattedItems =
+                (data.items || []).map(item => ({
+
+                    ...item,
+
+                    batch_no:
+                        item.batch_no || "",
+
+                    quantity:
+                        item.quantity || 0,
+
+                    rate:
+                        item.rate || 0,
+
+                    tax_percent:
+                        item.tax_percent || 0,
+
+                    unit:
+                        item.unit || "",
+
+                    unit_value:
+                        item.unit_value || 0
+                }));
+
+            setItems(formattedItems);
 
             setLoading(false);
 
@@ -105,26 +133,31 @@ export default function PurchaseEditPage() {
 
         items.forEach(item => {
 
-            const qty = Number(item.quantity) || 0;
+            const qty =
+                Number(item.quantity) || 0;
 
-            const rate = Number(item.rate) || 0;
+            const rate =
+                Number(item.rate) || 0;
 
-            const tax = Number(item.tax_percent) || 0;
+            const tax =
+                Number(item.tax_percent) || 0;
 
             const base = qty * rate;
 
             taxable += base;
 
-            const half = (base * tax) / 200;
+            const half =
+                (base * tax) / 200;
 
             cgst += half;
-
             sgst += half;
         });
 
-        const hamali = Number(form.hamali) || 0;
+        const hamali =
+            Number(form.hamali) || 0;
 
-        const total = taxable + cgst + sgst + hamali;
+        const total =
+            taxable + cgst + sgst + hamali;
 
         return {
             taxable,
@@ -143,12 +176,15 @@ export default function PurchaseEditPage() {
 
         try {
 
+            setSaving(true);
+
             const res = await fetch(
                 `/api/purchases/${params.id}`,
                 {
                     method: "PUT",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type":
+                            "application/json"
                     },
                     body: JSON.stringify({
                         ...form,
@@ -158,17 +194,23 @@ export default function PurchaseEditPage() {
                 }
             );
 
-            const data = await res.json();
+            const data =
+                await res.json();
 
             if (data.success) {
 
-                alert("Purchase Updated ✅");
+                alert(
+                    "Purchase Updated Successfully ✅"
+                );
 
                 router.push("/purchases");
 
             } else {
 
-                alert(data.error || "Update failed");
+                alert(
+                    data.error ||
+                    "Update failed"
+                );
             }
 
         } catch (err) {
@@ -176,6 +218,10 @@ export default function PurchaseEditPage() {
             console.log(err);
 
             alert("Update failed");
+
+        } finally {
+
+            setSaving(false);
         }
     };
 
@@ -183,7 +229,7 @@ export default function PurchaseEditPage() {
     if (loading) {
 
         return (
-            <div className="p-5">
+            <div className="p-5 text-center">
                 Loading...
             </div>
         );
@@ -191,141 +237,290 @@ export default function PurchaseEditPage() {
 
     // ================= UI =================
     return (
-        <div className="p-5">
 
-            <h1 className="text-2xl font-bold mb-5">
-                Edit Purchase
-            </h1>
+        <div className="
+            w-full
+            max-w-[100vw]
+            overflow-x-hidden
+            px-3
+            sm:px-5
+            py-4
+        ">
+
+            {/* HEADER */}
+            <div className="
+                flex
+                flex-col
+                md:flex-row
+                md:items-center
+                md:justify-between
+                gap-3
+                mb-6
+            ">
+
+                <div>
+
+                    <h1 className="
+                        text-2xl
+                        sm:text-3xl
+                        font-bold
+                        text-gray-800
+                    ">
+                        Edit Purchase
+                    </h1>
+
+                    <p className="
+                        text-sm
+                        text-gray-500
+                        mt-1
+                    ">
+                        Update purchase details
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.push("/purchases")
+                    }
+                    className="
+                        bg-gray-700
+                        hover:bg-black
+                        text-white
+                        px-4
+                        py-2
+                        rounded-xl
+                        text-sm
+                        w-fit
+                    "
+                >
+                    ← Back
+                </button>
+
+            </div>
 
             <form onSubmit={handleSubmit}>
 
-                {/* HEADER */}
-                <div className="grid grid-cols-4 gap-4 mb-5">
+                {/* HEADER FORM */}
+                <div className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    xl:grid-cols-4
+                    gap-4
+                    bg-white
+                    border
+                    rounded-2xl
+                    p-4
+                    shadow-sm
+                    mb-5
+                ">
 
-                    <input
-                        className="input"
-                        placeholder="Bill No"
-                        value={form.bill_no}
-                        onChange={e =>
-                            setForm({
-                                ...form,
-                                bill_no: e.target.value
-                            })
-                        }
-                    />
+                    {/* BILL */}
+                    <div>
 
-                    <input
-                        className="input"
-                        placeholder="DC No"
-                        value={form.dc_no}
-                        onChange={e =>
-                            setForm({
-                                ...form,
-                                dc_no: e.target.value
-                            })
-                        }
-                    />
+                        <label className="
+                            text-sm
+                            font-medium
+                            mb-1
+                            block
+                        ">
+                            Bill No
+                        </label>
 
-                    <select
-                        className="input"
-                        value={form.vendor_id}
-                        onChange={e =>
-                            setForm({
-                                ...form,
-                                vendor_id: e.target.value
-                            })
-                        }
-                    >
-                        <option value="">
-                            Select Vendor
-                        </option>
+                        <input
+                            className="input w-full"
+                            placeholder="Bill No"
+                            value={form.bill_no || ""}
+                            onChange={e =>
+                                setForm({
+                                    ...form,
+                                    bill_no:
+                                        e.target.value
+                                })
+                            }
+                        />
 
-                        {vendors.map(v => (
-                            <option key={v.id} value={v.id}>
-                                {v.name} - {v.mobile}
+                    </div>
+
+                    {/* DC */}
+                    <div>
+
+                        <label className="
+                            text-sm
+                            font-medium
+                            mb-1
+                            block
+                        ">
+                            DC No
+                        </label>
+
+                        <input
+                            className="input w-full"
+                            placeholder="DC No"
+                            value={form.dc_no || ""}
+                            onChange={e =>
+                                setForm({
+                                    ...form,
+                                    dc_no:
+                                        e.target.value
+                                })
+                            }
+                        />
+
+                    </div>
+
+                    {/* VENDOR */}
+                    <div>
+
+                        <label className="
+                            text-sm
+                            font-medium
+                            mb-1
+                            block
+                        ">
+                            Vendor
+                        </label>
+
+                        <select
+                            className="input w-full"
+                            value={form.vendor_id || ""}
+                            onChange={e =>
+                                setForm({
+                                    ...form,
+                                    vendor_id:
+                                        e.target.value
+                                })
+                            }
+                        >
+
+                            <option value="">
+                                Select Vendor
                             </option>
-                        ))}
-                    </select>
 
-                    <DatePicker
-                        selected={
-                            form.purchase_date
-                                ? new Date(
-                                    form.purchase_date.split("-")[0],
-                                    form.purchase_date.split("-")[1] - 1,
-                                    form.purchase_date.split("-")[2]
-                                )
-                                : null
-                        }
-                        onChange={(date) => {
+                            {
+                                vendors.map(v => (
 
-                            if (!date) return;
+                                    <option
+                                        key={v.id}
+                                        value={v.id}
+                                    >
+                                        {v.name}
+                                    </option>
 
-                            const year = date.getFullYear();
+                                ))
+                            }
 
-                            const month = String(
-                                date.getMonth() + 1
-                            ).padStart(2, "0");
+                        </select>
 
-                            const day = String(
-                                date.getDate()
-                            ).padStart(2, "0");
+                    </div>
 
-                            const formatted =
-                                `${year}-${month}-${day}`;
+                    {/* DATE */}
+                    <div>
 
-                            setForm({
-                                ...form,
-                                purchase_date: formatted
-                            });
-                        }}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Select Date"
-                        className="input w-full"
-                    />
+                        <label className="
+                            text-sm
+                            font-medium
+                            mb-1
+                            block
+                        ">
+                            Purchase Date
+                        </label>
 
-                    
+                        <DatePicker
+                            selected={
+                                form.purchase_date
+                                    ? new Date(
+                                        form.purchase_date
+                                    )
+                                    : null
+                            }
+
+                            onChange={(date) => {
+
+                                if (!date) return;
+
+                                const year =
+                                    date.getFullYear();
+
+                                const month =
+                                    String(
+                                        date.getMonth() + 1
+                                    ).padStart(2, "0");
+
+                                const day =
+                                    String(
+                                        date.getDate()
+                                    ).padStart(2, "0");
+
+                                setForm({
+                                    ...form,
+                                    purchase_date:
+                                        `${year}-${month}-${day}`
+                                });
+                            }}
+
+                            dateFormat="dd/MM/yyyy"
+
+                            placeholderText="Select Date"
+
+                            className="input w-full"
+                        />
+
+                    </div>
 
                 </div>
 
                 {/* TABLE */}
-                <div className="overflow-auto border rounded">
+                <div className="
+                    overflow-x-auto
+                    border
+                    rounded-2xl
+                    bg-white
+                    shadow-sm
+                ">
 
-                    <table className="w-full border border-separate text-sm">
+                    <table className="
+                        min-w-[900px]
+                        w-full
+                        text-xs
+                        sm:text-sm
+                    ">
 
-                        <thead className="bg-gray-200">
+                        <thead className="bg-gray-100">
 
                             <tr>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Product
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Batch
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Qty
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Rate
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Tax %
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     CGST
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     SGST
                                 </th>
 
-                                <th className="border p-2">
+                                <th className="border p-3">
                                     Total
                                 </th>
 
@@ -335,146 +530,173 @@ export default function PurchaseEditPage() {
 
                         <tbody>
 
-                            {items.map((item, i) => {
+                            {
+                                items.map((item, i) => {
 
-                                const qty =
-                                    Number(item.quantity) || 0;
+                                    const qty =
+                                        Number(item.quantity) || 0;
 
-                                const rate =
-                                    Number(item.rate) || 0;
+                                    const rate =
+                                        Number(item.rate) || 0;
 
-                                const tax =
-                                    Number(item.tax_percent) || 0;
+                                    const tax =
+                                        Number(item.tax_percent) || 0;
 
-                                const base = qty * rate;
+                                    const base =
+                                        qty * rate;
 
-                                const cgst =
-                                    (base * tax) / 200;
+                                    const cgst =
+                                        (base * tax) / 200;
 
-                                const sgst =
-                                    (base * tax) / 200;
+                                    const sgst =
+                                        (base * tax) / 200;
 
-                                const total =
-                                    base + cgst + sgst;
+                                    const total =
+                                        base + cgst + sgst;
 
-                                return (
+                                    return (
 
-                                    <tr
-                                        key={i}
-                                        className="hover:bg-gray-50"
-                                    >
+                                        <tr
+                                            key={i}
+                                            className="
+                                                hover:bg-gray-50
+                                            "
+                                        >
 
-                                        {/* PRODUCT */}
-                                        <td className="border p-2">
+                                            {/* PRODUCT */}
+                                            <td className="
+                                                border
+                                                p-2
+                                            ">
 
-                                            <div className="font-medium">
-                                                {item.product_name}
-                                            </div>
+                                                <div className="
+                                                    font-semibold
+                                                ">
+                                                    {item.product_name}
+                                                </div>
 
-                                            <div className="text-xs text-gray-500">
-                                                {parseFloat(item.unit_value || 0)}
-                                                {item.unit}
-                                            </div>
-
-                                        </td>
-
-                                        {/* BATCH */}
-                                        <td className="border p-2">
-
-                                            <input
-                                                className="input"
-                                                value={item.batch_no || ""}
-                                                onChange={e =>
-                                                    updateItem(
-                                                        i,
-                                                        "batch_no",
-                                                        e.target.value
+                                                <div className="
+                                                    text-xs
+                                                    text-gray-500
+                                                ">
+                                                    (
+                                                    {parseFloat(
+                                                        item.unit_value || 0
+                                                    )}
+                                                    {item.unit || ""}
                                                     )
-                                                }
-                                            />
+                                                </div>
 
-                                        </td>
+                                            </td>
 
-                                        {/* QTY */}
-                                        <td className="border p-2">
+                                            {/* BATCH */}
+                                            <td className="border p-2">
 
-                                            <input
-                                                type="number"
-                                                className="input"
-                                                value={item.quantity}
-                                                onChange={e =>
-                                                    updateItem(
-                                                        i,
-                                                        "quantity",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
+                                                <input
+                                                    className="input w-24"
+                                                    value={item.batch_no || ""}
+                                                    onChange={e =>
+                                                        updateItem(
+                                                            i,
+                                                            "batch_no",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
 
-                                        </td>
+                                            </td>
 
-                                        {/* RATE */}
-                                        <td className="border p-2">
+                                            {/* QTY */}
+                                            <td className="border p-2">
 
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="input"
-                                                value={item.rate}
-                                                onChange={e =>
-                                                    updateItem(
-                                                        i,
-                                                        "rate",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
+                                                <input
+                                                    type="number"
+                                                    className="input w-24"
+                                                    value={item.quantity || 0}
+                                                    onChange={e =>
+                                                        updateItem(
+                                                            i,
+                                                            "quantity",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
 
-                                        </td>
+                                            </td>
 
-                                        {/* TAX */}
-                                        <td className="border p-2">
+                                            {/* RATE */}
+                                            <td className="border p-2">
 
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="input"
-                                                value={item.tax_percent}
-                                                onChange={e =>
-                                                    updateItem(
-                                                        i,
-                                                        "tax_percent",
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    className="input w-28"
+                                                    value={item.rate || 0}
+                                                    onChange={e =>
+                                                        updateItem(
+                                                            i,
+                                                            "rate",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
 
-                                        </td>
+                                            </td>
 
-                                        {/* CGST */}
-                                        <td className="border p-2 text-center">
+                                            {/* TAX */}
+                                            <td className="border p-2">
 
-                                            ₹ {cgst.toFixed(2)}
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    className="input w-24"
+                                                    value={item.tax_percent || 0}
+                                                    onChange={e =>
+                                                        updateItem(
+                                                            i,
+                                                            "tax_percent",
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
 
-                                        </td>
+                                            </td>
 
-                                        {/* SGST */}
-                                        <td className="border p-2 text-center">
+                                            {/* CGST */}
+                                            <td className="
+                                                border
+                                                p-2
+                                                text-center
+                                                whitespace-nowrap
+                                            ">
+                                                ₹ {cgst.toFixed(2)}
+                                            </td>
 
-                                            ₹ {sgst.toFixed(2)}
+                                            {/* SGST */}
+                                            <td className="
+                                                border
+                                                p-2
+                                                text-center
+                                                whitespace-nowrap
+                                            ">
+                                                ₹ {sgst.toFixed(2)}
+                                            </td>
 
-                                        </td>
+                                            {/* TOTAL */}
+                                            <td className="
+                                                border
+                                                p-2
+                                                font-bold
+                                                whitespace-nowrap
+                                            ">
+                                                ₹ {total.toFixed(2)}
+                                            </td>
 
-                                        {/* TOTAL */}
-                                        <td className="border p-2 font-semibold">
+                                        </tr>
 
-                                            ₹ {total.toFixed(2)}
-
-                                        </td>
-
-                                    </tr>
-                                );
-                            })}
+                                    );
+                                })
+                            }
 
                         </tbody>
 
@@ -483,80 +705,144 @@ export default function PurchaseEditPage() {
                 </div>
 
                 {/* SUMMARY */}
-                <div className="mt-5 text-right space-y-2">
+                <div className="
+                    mt-6
+                    bg-white
+                    border
+                    rounded-2xl
+                    p-4
+                    shadow-sm
+                ">
 
-                    <div>
-                        Taxable:
-                        ₹ {summary.taxable.toFixed(2)}
-                    </div>
+                    <div className="
+                        grid
+                        grid-cols-1
+                        lg:grid-cols-2
+                        gap-6
+                    ">
 
-                    <div>
-                        CGST:
-                        ₹ {summary.cgst.toFixed(2)}
-                    </div>
-
-                    <div>
-                        SGST:
-                        ₹ {summary.sgst.toFixed(2)}
-                    </div>
-
-                    <div className="flex justify-between items-start gap-5 mt-5">
-
-                        {/* LEFT SIDE */}
-                        <div className="space-y-4 w-full">
+                        {/* LEFT */}
+                        <div>
 
                             {/* PAYMENT STATUS */}
-                            <div className="flex gap-5">
+                            <div className="mb-5">
 
-                                <label className="flex items-center gap-2">
-
-                                    <input
-                                        type="radio"
-                                        value="paid"
-                                        checked={form.payment_status === "paid"}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                payment_status: e.target.value
-                                            })
-                                        }
-                                    />
-
-                                    Paid
-
+                                <label className="
+                                    block
+                                    text-sm
+                                    font-semibold
+                                    mb-3
+                                ">
+                                    Payment Status
                                 </label>
 
-                                <label className="flex items-center gap-2">
+                                <div className="
+                                    flex
+                                    flex-wrap
+                                    gap-3
+                                ">
 
-                                    <input
-                                        type="radio"
-                                        value="pending"
-                                        checked={form.payment_status === "pending"}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                payment_status: e.target.value
-                                            })
-                                        }
-                                    />
+                                    <label className="
+                                        flex
+                                        items-center
+                                        gap-2
+                                        border
+                                        rounded-xl
+                                        px-4
+                                        py-2
+                                        cursor-pointer
+                                    ">
 
-                                    Pending
+                                        <input
+                                            type="radio"
+                                            value="paid"
+                                            checked={
+                                                form.payment_status === "paid"
+                                            }
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    payment_status:
+                                                        e.target.value
+                                                })
+                                            }
+                                        />
 
-                                </label>
+                                        <span className="
+                                            text-green-600
+                                            font-semibold
+                                        ">
+                                            Paid
+                                        </span>
+
+                                    </label>
+
+                                    <label className="
+                                        flex
+                                        items-center
+                                        gap-2
+                                        border
+                                        rounded-xl
+                                        px-4
+                                        py-2
+                                        cursor-pointer
+                                    ">
+
+                                        <input
+                                            type="radio"
+                                            value="pending"
+                                            checked={
+                                                form.payment_status === "pending"
+                                            }
+                                            onChange={(e) =>
+                                                setForm({
+                                                    ...form,
+                                                    payment_status:
+                                                        e.target.value
+                                                })
+                                            }
+                                        />
+
+                                        <span className="
+                                            text-red-600
+                                            font-semibold
+                                        ">
+                                            Pending
+                                        </span>
+
+                                    </label>
+
+                                </div>
 
                             </div>
 
                             {/* NOTES */}
                             <div>
 
+                                <label className="
+                                    block
+                                    text-sm
+                                    font-semibold
+                                    mb-2
+                                ">
+                                    Notes
+                                </label>
+
                                 <textarea
-                                    className="input w-full min-h-[100px]"
-                                    placeholder="Purchase Notes..."
+                                    className="
+                                        input
+                                        w-full
+                                        min-h-[120px]
+                                    "
+                                    placeholder="
+                                    Purchase notes...
+                                    "
                                     value={form.notes || ""}
                                     onChange={(e) =>
                                         setForm({
                                             ...form,
-                                            notes: e.target.value
+                                            notes:
+                                                e.target.value
                                         })
                                     }
                                 />
@@ -565,43 +851,166 @@ export default function PurchaseEditPage() {
 
                         </div>
 
-                        {/* RIGHT SIDE */}
-                        <div className="flex items-center gap-3">
+                        {/* RIGHT */}
+                        <div className="
+                            flex
+                            flex-col
+                            gap-4
+                        ">
 
-                            <span>Freight</span>
+                            {/* HAMALI */}
+                            <div className="
+                                flex
+                                flex-col
+                                sm:flex-row
+                                sm:items-center
+                                justify-between
+                                gap-3
+                            ">
 
-                            <input
-                                type="number"
-                                className="input w-40"
-                                value={form.hamali}
-                                onChange={e =>
-                                    setForm({
-                                        ...form,
-                                        hamali: e.target.value
-                                    })
-                                }
-                            />
+                                <span className="
+                                    font-medium
+                                ">
+                                    Freight / Hamali
+                                </span>
+
+                                <input
+                                    type="number"
+                                    className="
+                                        input
+                                        w-full
+                                        sm:w-40
+                                    "
+                                    value={form.hamali || 0}
+                                    onChange={e =>
+                                        setForm({
+                                            ...form,
+                                            hamali:
+                                                e.target.value
+                                        })
+                                    }
+                                />
+
+                            </div>
+
+                            {/* TOTALS */}
+                            <div className="
+                                border
+                                rounded-2xl
+                                p-4
+                                bg-gray-50
+                                space-y-3
+                            ">
+
+                                <div className="
+                                    flex
+                                    justify-between
+                                ">
+                                    <span>Taxable</span>
+
+                                    <span>
+                                        ₹ {summary.taxable.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="
+                                    flex
+                                    justify-between
+                                ">
+                                    <span>CGST</span>
+
+                                    <span>
+                                        ₹ {summary.cgst.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="
+                                    flex
+                                    justify-between
+                                ">
+                                    <span>SGST</span>
+
+                                    <span>
+                                        ₹ {summary.sgst.toFixed(2)}
+                                    </span>
+                                </div>
+
+                                <div className="
+                                    border-t
+                                    pt-3
+                                    flex
+                                    justify-between
+                                    text-xl
+                                    font-bold
+                                ">
+                                    <span>
+                                        Grand Total
+                                    </span>
+
+                                    <span>
+                                        ₹ {summary.total.toFixed(2)}
+                                    </span>
+                                </div>
+
+                            </div>
 
                         </div>
-
-                    </div>
-
-                    <div className="text-2xl font-bold">
-
-                        Grand Total:
-                        ₹ {summary.total.toFixed(2)}
 
                     </div>
 
                 </div>
 
                 {/* BUTTON */}
-                <button
-                    type="submit"
-                    className="mt-5 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded"
-                >
-                    Update Purchase
-                </button>
+                <div className="
+                    mt-6
+                    flex
+                    flex-col
+                    sm:flex-row
+                    gap-3
+                ">
+
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="
+                            bg-green-600
+                            hover:bg-green-700
+                            disabled:bg-gray-400
+                            text-white
+                            px-6
+                            py-3
+                            rounded-xl
+                            font-semibold
+                            transition
+                        "
+                    >
+
+                        {
+                            saving
+                                ? "Updating..."
+                                : "Update Purchase"
+                        }
+
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            router.push("/purchases")
+                        }
+                        className="
+                            bg-gray-200
+                            hover:bg-gray-300
+                            px-6
+                            py-3
+                            rounded-xl
+                            font-medium
+                        "
+                    >
+                        Cancel
+                    </button>
+
+                </div>
 
             </form>
 
