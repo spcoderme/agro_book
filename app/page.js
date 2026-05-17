@@ -16,7 +16,9 @@ export default function HomePage() {
             flex
             items-center
             justify-center
-            px-4
+            px-3
+            sm:px-5
+            py-6
         ">
 
             <div className="
@@ -28,60 +30,87 @@ export default function HomePage() {
                 border-gray-200
                 shadow-2xl
                 rounded-3xl
-                p-8
-                sm:p-12
+                p-5
+                sm:p-8
+                md:p-10
                 text-center
             ">
 
                 {/* LOGO / TITLE */}
-                <div className="mb-8">
+                <div className="mb-6 sm:mb-8">
 
+                    {/* LOGO */}
                     <div
-    className="
-        w-100
-        h-100
-        mx-auto
-        rounded-2xl
-        bg-white
-        flex
-        items-center
-        justify-center
-        shadow-lg
-        mb-5
-        overflow-hidden
-        border
-    "
->
+                        className="
+                            w-[180px]
+                            h-[180px]
+                            sm:w-[240px]
+                            sm:h-[240px]
+                            md:w-[300px]
+                            md:h-[300px]
+                            mx-auto
+                            rounded-3xl
+                            bg-white
+                            flex
+                            items-center
+                            justify-center
+                            shadow-lg
+                            mb-5
+                            overflow-hidden
+                            border
+                            p-3
+                        "
+                    >
 
-    <Image
-        src="/SINGHPHANA_LOGO.png"
-        alt="sindhaphana_agro_logo"
-        width={300}
-        height={300}
-        priority
-        className="
-            object-contain
-        "
-    />
+                        <Image
+                            src="/SINGHPHANA_LOGO.png"
+                            alt="sindhaphana_agro_logo"
+                            width={300}
+                            height={300}
+                            priority
+                            className="
+                                object-contain
+                                w-full
+                                h-full
+                            "
+                        />
 
-</div>
+                    </div>
 
+                    {/* TITLE */}
                     <h1 className="
-                        text-xl
-                        sm:text-xl
+                        text-lg
+                        sm:text-2xl
+                        md:text-3xl
                         font-extrabold
                         text-gray-800
                         tracking-tight
+                        leading-snug
                     ">
-                        सिंधफणा ॲग्रो एजन्सी, माजलगाव । मो.९७६६६४४४३० 
+                        सिंधफणा ॲग्रो एजन्सी, माजलगाव
                     </h1>
 
-                    <p className="
-                        mt-3
+                    {/* MOBILE */}
+                    <div className="
+                        mt-2
                         text-sm
                         sm:text-base
+                        font-semibold
+                        text-green-700
+                    ">
+                        मो. ९७६६६४४४३०
+                    </div>
+
+                    {/* DESCRIPTION */}
+                    <p className="
+                        mt-4
+                        text-xs
+                        sm:text-sm
+                        md:text-base
                         text-gray-500
                         leading-relaxed
+                        px-1
+                        sm:px-4
                     ">
                         Smart inventory, purchase and vendor
                         management system for agro businesses.
@@ -104,12 +133,15 @@ export default function HomePage() {
                         duration-200
                         text-white
                         font-semibold
-                        px-8
-                        py-4
+                        px-6
+                        sm:px-8
+                        py-3
+                        sm:py-4
                         rounded-2xl
                         shadow-lg
-                        text-base
-                        sm:text-lg
+                        text-sm
+                        sm:text-base
+                        md:text-lg
                         w-full
                         sm:w-auto
                     "
@@ -120,10 +152,13 @@ export default function HomePage() {
                 {/* FOOTER */}
                 <div className="
                     mt-8
-                    text-xs
+                    text-[11px]
+                    sm:text-xs
                     text-gray-400
+                    leading-relaxed
                 ">
-                    © 2026 सिंधफणा ॲग्रो एजन्सी, माजलगाव । मो.९७६६६४४४३० . All rights reserved.
+                    © 2026 सिंधफणा ॲग्रो एजन्सी,
+                    माजलगाव. All rights reserved.
                 </div>
 
             </div>
