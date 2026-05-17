@@ -81,9 +81,8 @@ export default function PurchaseDetails() {
 
                 <div>
                     <p>
-                        <b>Vendor:</b> {data.purchase?.vendor_name}
+                        <b>Vendor: {data.purchase?.vendor_name}</b>
                     </p>
-
                     <p>
                         <b>DC No:</b> {data.purchase?.dc_no}
                     </p>
@@ -176,7 +175,7 @@ export default function PurchaseDetails() {
                                 </td>
 
                                 <td className="border p-2">
-                                    {item.tax_percent}%
+                                    {parseFloat(item.tax_percent || 0)}%
                                 </td>
 
                                 <td className="border p-2 text-center">
@@ -294,14 +293,30 @@ export default function PurchaseDetails() {
                 <div className="w-[350px] border rounded p-4 bg-white">
 
                     <p>
-                        <b>Freight:</b> ₹ {data.purchase?.hamali}
                     </p>
                     <div className="flex justify-between mb-2">
-                        <span>Grand Total</span>
+                        <div>
+                            <p>Total</p>
+                            <p><b>Freight/Hamali</b></p> 
+                        <p className="font-bold text-xl">Grand Total</p>
+                        </div>
+                        <div>
+                            <p>:</p>
+                            <p>:</p>
+                            <p>:</p>
+                        </div>
+                        <div className="text-right">
+                            <p>₹{(
+                                        parseFloat(data.purchase.grand_total || 0)
+                                        -
+                                        parseFloat(data.purchase.hamali || 0)
+                                    ).toFixed(2)}</p>
+                            <p>₹{data.purchase?.hamali}</p>
 
-                        <span className="font-bold text-xl">
+                        <p className="font-bold text-xl">
                             ₹ {parseFloat(data.purchase?.grand_total || 0).toFixed(2)}
-                        </span>
+                        </p>
+                        </div>
 
                     </div>
 

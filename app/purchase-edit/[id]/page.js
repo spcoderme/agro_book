@@ -395,7 +395,7 @@ export default function PurchaseEditPage() {
                             }
                         >
 
-                            <option value="">
+                            <option value="" disabled>
                                 Select Vendor
                             </option>
 
@@ -612,7 +612,7 @@ export default function PurchaseEditPage() {
                                                 <input
                                                     type="number"
                                                     className="input w-24"
-                                                    value={item.quantity || 0}
+                                                    value={parseFloat(item.quantity) || 0}
                                                     onChange={e =>
                                                         updateItem(
                                                             i,
@@ -648,9 +648,10 @@ export default function PurchaseEditPage() {
 
                                                 <input
                                                     type="number"
-                                                    step="0.01"
+                                                    step="1"
+                                                    min={0}
                                                     className="input w-24"
-                                                    value={item.tax_percent || 0}
+                                                    value={parseFloat(item.tax_percent || 0)}
                                                     onChange={e =>
                                                         updateItem(
                                                             i,
@@ -855,43 +856,10 @@ export default function PurchaseEditPage() {
                         <div className="
                             flex
                             flex-col
-                            gap-4
+                            gap-2
                         ">
 
-                            {/* HAMALI */}
-                            <div className="
-                                flex
-                                flex-col
-                                sm:flex-row
-                                sm:items-center
-                                justify-between
-                                gap-3
-                            ">
-
-                                <span className="
-                                    font-medium
-                                ">
-                                    Freight / Hamali
-                                </span>
-
-                                <input
-                                    type="number"
-                                    className="
-                                        input
-                                        w-full
-                                        sm:w-40
-                                    "
-                                    value={form.hamali || 0}
-                                    onChange={e =>
-                                        setForm({
-                                            ...form,
-                                            hamali:
-                                                e.target.value
-                                        })
-                                    }
-                                />
-
-                            </div>
+                            
 
                             {/* TOTALS */}
                             <div className="
@@ -934,6 +902,41 @@ export default function PurchaseEditPage() {
                                         ₹ {summary.sgst.toFixed(2)}
                                     </span>
                                 </div>
+                                {/* HAMALI */}
+                            <div className="
+                                flex
+                                flex-col
+                                sm:flex-row
+                                sm:items-center
+                                justify-between
+                                gap-3
+                            ">
+
+                                <span className="
+                                    font-medium
+                                ">
+                                    Freight / Hamali
+                                </span>
+
+                                <input
+                                    type="number"
+                                    className="
+                                        input
+                                        
+                                        sm:w-40
+                                    "
+                                    min={0}
+                                    value={form.hamali || 0}
+                                    onChange={e =>
+                                        setForm({
+                                            ...form,
+                                            hamali:
+                                                e.target.value
+                                        })
+                                    }
+                                />
+
+                            </div>
 
                                 <div className="
                                     border-t

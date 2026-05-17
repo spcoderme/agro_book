@@ -1,12 +1,14 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
+// ================= GET SINGLE PURCHASE =================
 export async function GET(req, { params }) {
 
     const { id } = await params;
 
     try {
 
+        // ================= PURCHASE HEADER =================
         const purchaseResult = await db.query(
             `
             SELECT
@@ -14,72 +16,123 @@ export async function GET(req, { params }) {
                 p.bill_no,
                 p.dc_no,
                 p.vendor_id,
-                TO_CHAR(p.purchase_date, 'YYYY-MM-DD') AS purchase_date,
+
+                TO_CHAR(
+                    p.purchase_date,
+                    'YYYY-MM-DD'
+                ) AS purchase_date,
+
                 p.hamali,
                 p.grand_total,
                 p.payment_status,
                 p.notes,
                 p.created_at,
+
                 v.name AS vendor_name
+
             FROM purchases p
-            LEFT JOIN vendors v ON v.id = p.vendor_id
+
+            LEFT JOIN vendors v
+                ON v.id = p.vendor_id
+
             WHERE p.id = $1
             `,
             [id]
         );
 
+        // ================= PURCHASE ITEMS =================
         const itemResult = await db.query(
             `
             SELECT
                 pi.id,
                 pi.purchase_id,
                 pi.product_id,
+
                 pr.name AS product_name,
-                pr.unit_value,
+
+                pi.unit_value,
+                pi.unit,
+
                 pi.batch_no,
                 pi.quantity,
                 pi.rate,
+
+                pi.tax_percent,
+                pi.cgst,
+                pi.sgst,
+
                 pi.total
+
             FROM purchase_items pi
-            LEFT JOIN products pr ON pr.id = pi.product_id
+
+            LEFT JOIN products pr
+                ON pr.id = pi.product_id
+
             WHERE pi.purchase_id = $1
+
+            ORDER BY pi.id ASC
             `,
             [id]
         );
 
+        // ================= NOT FOUND =================
         if (purchaseResult.rows.length === 0) {
-            return Response.json(
-                { error: "Purchase not found" },
-                { status: 404 }
+
+            return NextResponse.json(
+                {
+                    error: "Purchase not found"
+                },
+                {
+                    status: 404
+                }
             );
         }
 
-        return Response.json({
-            purchase: purchaseResult.rows[0],
-            items: itemResult.rows
+        // ================= SUCCESS =================
+        return NextResponse.json({
+            purchase:
+                purchaseResult.rows[0],
+
+            items:
+                itemResult.rows
         });
 
     } catch (err) {
 
-        console.log("GET PURCHASE ERROR:", err);
+        console.log(
+            "GET PURCHASE ERROR:",
+            err
+        );
 
-        return Response.json(
-            { error: "Failed to fetch purchase" },
-            { status: 500 }
+        return NextResponse.json(
+            {
+                error:
+                    "Failed to fetch purchase",
+                details:
+                    err.message
+            },
+            {
+                status: 500
+            }
         );
     }
 }
 
+
+// ================= UPDATE PURCHASE =================
 export async function PUT(req, { params }) {
 
     const { id } = await params;
 
-    const client = await db.connect();
+    const client =
+        await db.connect();
 
     try {
+
         await client.query("BEGIN");
 
-        const data = await req.json();
+        const data =
+            await req.json();
 
         const {
             bill_no,
@@ -113,7 +166,7 @@ export async function PUT(req, { params }) {
                 dc_no,
                 vendor_id,
                 purchase_date,
-                hamali,
+                hamali || 0,
                 summary?.total || 0,
                 payment_status,
                 notes,
@@ -130,12 +183,29 @@ export async function PUT(req, { params }) {
             [id]
         );
 
-        // ================= INSERT ITEMS =================
-        for (let item of items) {
+        // ================= INSERT NEW ITEMS =================
+        for (const item of items) {
 
-            const qty = Number(item.quantity) || 0;
-            const rate = Number(item.rate) || 0;
-            const total = qty * rate;
+            const qty =
+                Number(item.quantity) || 0;
+
+            const rate =
+                Number(item.rate) || 0;
+
+            const tax =
+                Number(item.tax_percent) || 0;
+
+            const base =
+                qty * rate;
+
+            const cgst =
+                (base * tax) / 200;
+
+            const sgst =
+                (base * tax) / 200;
+
+            const total =
+                base + cgst + sgst;
 
             await client.query(
                 `
@@ -143,43 +213,77 @@ export async function PUT(req, { params }) {
                 (
                     purchase_id,
                     product_id,
+                    unit_value,
+                    unit,
                     batch_no,
                     quantity,
                     rate,
+                    tax_percent,
+                    cgst,
+                    sgst,
                     total
                 )
-                VALUES ($1,$2,$3,$4,$5,$6)
+                VALUES
+                (
+                    $1,$2,$3,$4,$5,
+                    $6,$7,$8,$9,$10,$11
+                )
                 `,
                 [
                     id,
                     item.product_id,
+
+                    item.unit_value || 0,
+                    item.unit || "",
+
                     item.batch_no || "",
+
                     qty,
                     rate,
+
+                    tax,
+
+                    cgst,
+                    sgst,
+
                     total
                 ]
             );
         }
 
+        // ================= COMMIT =================
         await client.query("COMMIT");
 
-        return Response.json({
+        return NextResponse.json({
             success: true,
-            message: "Purchase updated successfully"
+            message:
+                "Purchase updated successfully"
         });
 
     } catch (err) {
 
+        // ================= ROLLBACK =================
         await client.query("ROLLBACK");
 
-        console.log("UPDATE ERROR:", err);
+        console.log(
+            "UPDATE ERROR:",
+            err
+        );
 
-        return Response.json(
-            { error: "Failed to update purchase" },
-            { status: 500 }
+        return NextResponse.json(
+            {
+                error:
+                    "Failed to update purchase",
+                details:
+                    err.message
+            },
+            {
+                status: 500
+            }
         );
 
     } finally {
+
         client.release();
     }
 }

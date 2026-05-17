@@ -1,88 +1,46 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// ================= CREATE =================
-export async function POST(req) {
 
-    try {
-
-        const data =
-            await req.json();
-
-        const {
-            name,
-            mobile,
-            address,
-            gst_no
-        } = data;
-
-        await db.query(
-            `
-            INSERT INTO vendors
-            (
-                name,
-                mobile,
-                address,
-                gst_no
-            )
-            VALUES ($1, $2, $3, $4)
-            `,
-            [
-                name,
-                mobile,
-                address,
-                gst_no
-            ]
-        );
-
-        return NextResponse.json({
-            success: true
-        });
-
-    } catch (err) {
-
-        console.log(
-            "CREATE VENDOR ERROR:",
-            err
-        );
-
-        return NextResponse.json(
-            {
-                error:
-                    "Failed to create vendor"
-            },
-            {
-                status: 500
-            }
-        );
-    }
-}
 
 // ================= GET SINGLE =================
-export async function GET(req, { params }) {
+export async function GET(req, context) {
 
     try {
 
-        const { id } = params;
+        const { id } = await context.params;
 
-        const result =
-            await db.query(
-                `
-                SELECT *
-                FROM vendors
-                WHERE id = $1
-                `,
-                [id]
-            );
-
-        if (
-            result.rows.length === 0
-        ) {
+        if (!id) {
 
             return NextResponse.json(
                 {
-                    error:
-                        "Vendor not found"
+                    error: "Vendor ID required"
+                },
+                {
+                    status: 400
+                }
+            );
+        }
+
+        const result = await db.query(
+            `
+            SELECT
+                id,
+                name,
+                mobile,
+                address,
+                gst_no
+            FROM vendors
+            WHERE id = $1
+            `,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+
+            return NextResponse.json(
+                {
+                    error: "Vendor not found"
                 },
                 {
                     status: 404
@@ -103,7 +61,7 @@ export async function GET(req, { params }) {
 
         return NextResponse.json(
             {
-                error: "Failed"
+                error: "Failed to fetch vendor"
             },
             {
                 status: 500
@@ -113,23 +71,35 @@ export async function GET(req, { params }) {
 }
 
 // ================= UPDATE =================
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
 
     try {
 
-        const { id } = params;
+        const { id } = await context.params;
 
-        const data =
-            await req.json();
+        const body = await req.json();
 
         const {
             name,
             mobile,
             address,
             gst_no
-        } = data;
+        } = body;
 
-        await db.query(
+        // VALIDATION
+        if (!name?.trim()) {
+
+            return NextResponse.json(
+                {
+                    error: "Vendor name is required"
+                },
+                {
+                    status: 400
+                }
+            );
+        }
+
+        const result = await db.query(
             `
             UPDATE vendors
             SET
@@ -138,18 +108,32 @@ export async function PUT(req, { params }) {
                 address = $3,
                 gst_no = $4
             WHERE id = $5
+            RETURNING *
             `,
             [
-                name,
-                mobile,
-                address,
-                gst_no,
+                name.trim(),
+                mobile || "",
+                address || "",
+                gst_no || "",
                 id
             ]
         );
 
+        if (result.rowCount === 0) {
+
+            return NextResponse.json(
+                {
+                    error: "Vendor not found"
+                },
+                {
+                    status: 404
+                }
+            );
+        }
+
         return NextResponse.json({
-            success: true
+            success: true,
+            vendor: result.rows[0]
         });
 
     } catch (err) {
@@ -161,8 +145,7 @@ export async function PUT(req, { params }) {
 
         return NextResponse.json(
             {
-                error:
-                    "Update failed"
+                error: "Failed to update vendor"
             },
             {
                 status: 500
@@ -172,19 +155,32 @@ export async function PUT(req, { params }) {
 }
 
 // ================= DELETE =================
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
 
     try {
 
-        const { id } = params;
+        const { id } = await context.params;
 
-        await db.query(
+        const result = await db.query(
             `
             DELETE FROM vendors
             WHERE id = $1
+            RETURNING id
             `,
             [id]
         );
+
+        if (result.rowCount === 0) {
+
+            return NextResponse.json(
+                {
+                    error: "Vendor not found"
+                },
+                {
+                    status: 404
+                }
+            );
+        }
 
         return NextResponse.json({
             success: true
@@ -199,8 +195,7 @@ export async function DELETE(req, { params }) {
 
         return NextResponse.json(
             {
-                error:
-                    "Delete failed"
+                error: "Failed to delete vendor"
             },
             {
                 status: 500

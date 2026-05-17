@@ -376,7 +376,7 @@ text-sm
                                 e.target.value
                             )
                         }
-
+                        min={0}
                         placeholder="0"
 
                         className="
@@ -411,7 +411,7 @@ text-sm
 
                     <input
                         type="number"
-
+                        min={0}
                         value={stock}
 
                         onChange={e =>

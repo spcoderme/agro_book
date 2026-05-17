@@ -141,61 +141,72 @@ export default function PurchasesPage() {
                     }
                 />
 
-                {/* VENDOR */}
-                <div className="relative z-20">
-                    <input
-                        className="input w-full"
-                        placeholder="Search Vendor"
-                        value={filters.vendor}
-                        onChange={(e) =>
-                            setFilters({ ...filters, vendor: e.target.value })
-                        }
-                    />
+                    {/* VENDOR */}
+    <div className="z-20">
 
-                    {filteredVendors.length > 0 && (
-                        <div className="absolute top-full left-0 z-50 bg-white border w-full max-h-52 overflow-y-auto rounded-xl shadow-lg">
+        <Select
+            placeholder="Search Vendor..."
+            isClearable
+            menuPortalTarget={
+                typeof window !== "undefined"
+                    ? document.body
+                    : null
+            }
+            menuPosition="fixed"
+            styles={{
+                menuPortal: base => ({
+                    ...base,
+                    zIndex: 9999
+                })
+            }}
+            options={vendors.map(v => ({
+                value: v.name,
+                label:
+                    `${v.name}` +
+                    `${v.mobile ? ` (${v.mobile})` : ""}`
+            }))}
+            value={
+                filters.vendor
+                    ? {
+                        value: filters.vendor,
+                        label: filters.vendor
+                    }
+                    : null
+            }
+            onChange={(selected) =>
+                setFilters({
+                    ...filters,
+                    vendor: selected?.value || ""
+                })
+            }
+        />
 
-                            {filteredVendors.map(v => (
-                                <div
-                                    key={v.id}
-                                    className="p-3 hover:bg-gray-100 cursor-pointer border-b"
-                                    onClick={() =>
-                                        setFilters({ ...filters, vendor: v.name })
-                                    }
-                                >
-                                    <div className="font-medium">{v.name}</div>
-                                    <div className="text-xs text-gray-500">{v.mobile}</div>
-                                </div>
-                            ))}
+    </div>
 
-                        </div>
-                    )}
-                </div>
-
-                {/* PRODUCT */}
-                <div className="z-10">
-                    <Select
-                        placeholder="Search Product..."
-                        isClearable
-                        menuPortalTarget={typeof window !== "undefined" ? document.body : null}
-                        menuPosition="fixed"
-                        styles={{
-                            menuPortal: base => ({ ...base, zIndex: 9999 })
-                        }}
-                        options={products.map(p => ({
-                            value: p.name,
-                            label: `${p.name} (${parseFloat(p.unit_value || 0)}) [Stock: ${p.stock || 0}]`
-                        }))}
-                        value={
-                            filters.product
-                                ? { value: filters.product, label: filters.product }
-                                : null
-                        }
-                        onChange={(selected) =>
-                            setFilters({ ...filters, product: selected?.value || "" })
-                        }
-                    />
-                </div>
+                    {/* PRODUCT */}
+                    <div className="z-10">
+                        <Select
+                            placeholder="Search Product..."
+                            isClearable
+                            menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+                            menuPosition="fixed"
+                            styles={{
+                                menuPortal: base => ({ ...base, zIndex: 9999 })
+                            }}
+                            options={products.map(p => ({
+                                value: p.name,
+                                label: `${p.name} (${parseFloat(p.unit_value || 0)}) [Stock: ${p.stock || 0}]`
+                            }))}
+                            value={
+                                filters.product
+                                    ? { value: filters.product, label: filters.product }
+                                    : null
+                            }
+                            onChange={(selected) =>
+                                setFilters({ ...filters, product: selected?.value || "" })
+                            }
+                        />
+                    </div>
 
                 {/* DATE */}
                 <div className="relative z-30">
@@ -272,12 +283,12 @@ export default function PurchasesPage() {
                                     <td className="border p-2">
                                         <div className="font-medium">{r.product_name}</div>
                                         <div className="text-xs text-gray-500">
-                                            ({parseFloat(r.unit_value || 0)})
+                                            ({parseFloat(r.unit_value || 0)} {r.unit})
                                         </div>
                                     </td>
 
                                     <td className="border p-2">{r.batch_no}</td>
-                                    <td className="border p-2 text-center">{r.quantity}</td>
+                                    <td className="border p-2 text-center">{parseFloat(r.quantity)}</td>
 
                                     <td className="border p-2">
                                         ₹ {parseFloat(r.rate || 0).toFixed(2)}

@@ -1,6 +1,77 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
+
+// ================= CREATE =================
+export async function POST(req) {
+
+    try {
+
+        const body = await req.json();
+
+        const {
+            name,
+            mobile,
+            address,
+            gst_no
+        } = body;
+
+        if (!name?.trim()) {
+
+            return NextResponse.json(
+                {
+                    error: "Vendor name is required"
+                },
+                {
+                    status: 400
+                }
+            );
+        }
+
+        const result = await db.query(
+            `
+            INSERT INTO vendors
+            (
+                name,
+                mobile,
+                address,
+                gst_no
+            )
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+            `,
+            [
+                name.trim(),
+                mobile || "",
+                address || "",
+                gst_no || ""
+            ]
+        );
+
+        return NextResponse.json({
+            success: true,
+            vendor: result.rows[0]
+        });
+
+    } catch (err) {
+
+        console.log(
+            "CREATE VENDOR ERROR:",
+            err
+        );
+
+        return NextResponse.json(
+            {
+                error: "Failed to create vendor"
+            },
+            {
+                status: 500
+            }
+        );
+    }
+}
+
+
 // ================= GET VENDORS =================
 export async function GET(req) {
 
