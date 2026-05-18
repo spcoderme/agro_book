@@ -148,41 +148,47 @@ export async function POST(req) {
             await db.query(
                 `
                 INSERT INTO purchase_items
-                (
-                    purchase_id,
-                    product_id,
-                    company_name,
-                    unit_value,
-                    unit,
-                    batch_no,
-                    quantity,
-                    rate,
-                    tax_percent,
-                    cgst,
-                    sgst,
-                    total
-                )
+(
+    purchase_id,
+    product_id,
+    unit_value,
+    unit,
+    batch_no,
+    quantity,
+    rate,
+    tax_percent,
+    cgst,
+    sgst,
+    total
+)
                 VALUES
                 (
-                    $1, $2, $3, $4,
-                    $5, $6, $7, $8,
-                    $9, $10, $11, $12
-                )
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10,
+    $11
+)
                 `,
                 [
-                    purchaseId,
-                    item.product_id ?? null,
-                    item.company_name ?? null,
-                    item.unit_value ?? 0,
-                    item.unit ?? null,
-                    item.batch_no ?? null,
-                    qty,
-                    rate,
-                    tax,
-                    cgst,
-                    sgst,
-                    total
-                ]
+    purchaseId,
+    item.product_id,
+    Number(item.unit_value || 0),
+    item.unit || null,
+    item.batch_no || null,
+    qty,
+    rate,
+    tax,
+    cgst,
+    sgst,
+    total
+]
             );
 
             // ================= UPDATE STOCK =================

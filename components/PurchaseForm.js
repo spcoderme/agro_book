@@ -17,6 +17,9 @@ export default function PurchaseForm() {
     const [mounted, setMounted] =
         useState(false);
 
+    const [loading, setLoading] =
+        useState(false);
+
     const [products, setProducts] =
         useState([]);
 
@@ -26,6 +29,9 @@ export default function PurchaseForm() {
     const [units, setUnits] =
         useState([]);
 
+    const [errors, setErrors] =
+        useState({});
+
     const [form, setForm] = useState({
         bill_no: "",
         dc_no: "",
@@ -33,7 +39,8 @@ export default function PurchaseForm() {
         vendor_id: "",
         vendor_name: "",
         hamali: 0,
-        payment_status: "pending"
+        payment_status: "pending",
+        notes: ""
     });
 
     const [items, setItems] = useState([
@@ -51,22 +58,40 @@ export default function PurchaseForm() {
         }
     ]);
 
-    // ================= HYDRATION FIX =================
+    // ================= LOAD =================
     useEffect(() => {
 
         setMounted(true);
 
-        fetch("/api/products")
-            .then(res => res.json())
-            .then(data => setProducts(Array.isArray(data) ? data : []));
+        Promise.all([
+            fetch("/api/products").then(res => res.json()),
+            fetch("/api/vendors").then(res => res.json()),
+            fetch("/api/units").then(res => res.json())
+        ])
+            .then(([productsData, vendorsData, unitsData]) => {
 
-        fetch("/api/vendors")
-            .then(res => res.json())
-            .then(data => setVendors(Array.isArray(data) ? data : []));
+                setProducts(
+                    Array.isArray(productsData)
+                        ? productsData
+                        : []
+                );
 
-        fetch("/api/units")
-            .then(res => res.json())
-            .then(data => setUnits(Array.isArray(data) ? data : []));
+                setVendors(
+                    Array.isArray(vendorsData)
+                        ? vendorsData
+                        : []
+                );
+
+                setUnits(
+                    Array.isArray(unitsData)
+                        ? unitsData
+                        : []
+                );
+            })
+            .catch(err => {
+                console.log(err);
+                alert("Failed to load data");
+            });
 
     }, []);
 
@@ -105,13 +130,20 @@ export default function PurchaseForm() {
     // ================= REMOVE ROW =================
     const removeRow = (index) => {
 
+        if (items.length === 1) {
+
+            alert("Minimum 1 item required");
+
+            return;
+        }
+
         const updated =
             items.filter((_, i) => i !== index);
 
         setItems(updated);
     };
 
-    // ================= GST CALC =================
+    // ================= SUMMARY =================
     const calcSummary = () => {
 
         let taxable = 0;
@@ -171,12 +203,81 @@ export default function PurchaseForm() {
     const summary =
         calcSummary();
 
+    // ================= VALIDATION =================
+    const validateForm = () => {
+
+        const newErrors = {};
+
+        // Vendor
+        if (
+            !form.vendor_id &&
+            !form.vendor_name
+        ) {
+
+            newErrors.vendor =
+                "Vendor required";
+        }
+
+        // Date
+        if (!form.purchase_date) {
+
+            newErrors.purchase_date =
+                "Purchase date required";
+        }
+
+        // Items
+        const validItems =
+            items.filter(item =>
+                item.product_id
+            );
+
+        if (validItems.length === 0) {
+
+            newErrors.items =
+                "At least 1 product required";
+        }
+
+        validItems.forEach((item, index) => {
+
+            if (
+                !item.qty ||
+                Number(item.qty) <= 0
+            ) {
+
+                newErrors[`qty_${index}`] =
+                    "Qty required";
+            }
+
+            if (
+                !item.rate ||
+                Number(item.rate) <= 0
+            ) {
+
+                newErrors[`rate_${index}`] =
+                    "Rate required";
+            }
+        });
+
+        setErrors(newErrors);
+
+        return (
+            Object.keys(newErrors).length === 0
+        );
+    };
+
     // ================= SUBMIT =================
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
+        if (!validateForm()) {
+
+            return;
+        }
+
         try {
+
+            setLoading(true);
 
             const res = await fetch(
                 "/api/purchase",
@@ -214,35 +315,79 @@ export default function PurchaseForm() {
                 return;
             }
 
-            alert("Purchase Saved ✅");
+            alert(
+                "Purchase Saved Successfully ✅"
+            );
+
+            // RESET
+            setForm({
+                bill_no: "",
+                dc_no: "",
+                purchase_date: new Date(),
+                vendor_id: "",
+                vendor_name: "",
+                hamali: 0,
+                payment_status: "pending",
+                notes:""
+            });
+
+            setItems([
+                {
+                    product_id: "",
+                    product_name: "",
+                    batch_no: "",
+                    unit_id: "",
+                    unit: "",
+                    unit_value: "",
+                    stock: 0,
+                    qty: "",
+                    rate: "",
+                    tax: 5
+                }
+            ]);
+
+            setErrors({});
 
         } catch (err) {
 
             console.log(err);
 
             alert("Something went wrong");
+
+        } finally {
+
+            setLoading(false);
         }
     };
 
     return (
 
-        <div className="w-full px-2 sm:px-4 md:px-6 py-4 max-w-[100vw] overflow-x-hidden">
+        <div className="
+            w-full
+            px-2
+            sm:px-4
+            md:px-6
+            py-4
+            max-w-[100vw]
+            overflow-x-hidden
+        ">
 
             {/* HEADER */}
             <div className="
-    flex
-    flex-col
-    lg:flex-row
-    lg:items-center
-    lg:justify-between
-    gap-4
-    mb-5
-">
+                flex
+                flex-col
+                lg:flex-row
+                lg:items-center
+                lg:justify-between
+                gap-4
+                mb-5
+            ">
 
                 <div>
 
                     <h1 className="
                         text-2xl
+                        sm:text-3xl
                         font-bold
                         text-gray-800
                     ">
@@ -280,152 +425,161 @@ export default function PurchaseForm() {
 
                 {/* HEADER FORM */}
                 <div className="
-    grid
-    grid-cols-1
-    sm:grid-cols-2
-    xl:grid-cols-4
-    gap-3
-    mb-5
-">
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    xl:grid-cols-4
+                    gap-3
+                    mb-5
+                ">
 
                     {/* BILL */}
-                    <input
-                        className="input"
-                        placeholder="Bill No"
-                        value={form.bill_no}
-                        onChange={e =>
-                            setForm({
-                                ...form,
-                                bill_no: e.target.value
-                            })
-                        }
-                    />
+                    <div>
+
+                        <input
+                            className="input w-full"
+                            placeholder="Bill No"
+                            value={form.bill_no}
+                            onChange={e =>
+                                setForm({
+                                    ...form,
+                                    bill_no: e.target.value
+                                })
+                            }
+                        />
+
+                    </div>
 
                     {/* DC */}
-                    <input
-                        className="input"
-                        placeholder="DC No"
-                        value={form.dc_no}
-                        onChange={e =>
-                            setForm({
-                                ...form,
-                                dc_no: e.target.value
-                            })
-                        }
-                    />
+                    <div>
 
-                    
+                        <input
+                            className="input w-full"
+                            placeholder="DC No"
+                            value={form.dc_no}
+                            onChange={e =>
+                                setForm({
+                                    ...form,
+                                    dc_no: e.target.value
+                                })
+                            }
+                        />
+
+                    </div>
 
                     {/* DATE */}
-                    <div className="relative z-30">
+                    <div>
 
                         <DatePicker
-    selected={form.purchase_date}
-    onChange={(date) =>
-        setForm({
-            ...form,
-            purchase_date: date
-        })
-    }
-    dateFormat="dd/MM/yyyy"
-    placeholderText="Select Date"
-    popperPlacement="bottom-start"
-    portalId="root"
-    popperClassName="z-[99999]"
-    className="input w-full"
-/>
+                            selected={form.purchase_date}
+
+                            onChange={(date) =>
+                                setForm({
+                                    ...form,
+                                    purchase_date: date
+                                })
+                            }
+
+                            dateFormat="dd/MM/yyyy"
+
+                            className="input w-full"
+
+                            placeholderText="Select Date"
+                        />
+
+                        {
+                            errors.purchase_date && (
+
+                                <p className="
+                                    text-red-500
+                                    text-xs
+                                    mt-1
+                                ">
+                                    {errors.purchase_date}
+                                </p>
+                            )
+                        }
 
                     </div>
 
                     {/* VENDOR */}
-                    <div className="relative z-20">
+                    <div className="relative z-50">
 
-                        <input
-                            className="input w-full"
-                            placeholder="Search Vendor"
-                            value={form.vendor_name}
-                            onChange={(e) => {
+                        <Select
+
+                            placeholder="Search Vendor..."
+
+                            value={
+                                form.vendor_id
+                                    ? {
+                                        value: form.vendor_id,
+                                        label: form.vendor_name
+                                    }
+                                    : null
+                            }
+
+                            options={
+                                vendors.map(v => ({
+                                    value: v.id,
+                                    label:
+                                        `${v.name} ${v.mobile ? `(${v.mobile})` : ""}`,
+                                    vendor: v
+                                }))
+                            }
+
+                            onChange={(selectedOption) => {
+
+                                if (!selectedOption) {
+
+                                    setForm({
+                                        ...form,
+                                        vendor_id: "",
+                                        vendor_name: ""
+                                    });
+
+                                    return;
+                                }
 
                                 setForm({
                                     ...form,
-                                    vendor_name: e.target.value,
-                                    vendor_id: ""
-                                });
+                                    vendor_id:
+                                        selectedOption.vendor.id,
 
+                                    vendor_name:
+                                        selectedOption.vendor.name
+                                });
+                            }}
+
+                            isSearchable
+
+                            isClearable
+
+                            menuPortalTarget={
+                                typeof window !== "undefined"
+                                    ? document.body
+                                    : null
+                            }
+
+                            menuPosition="fixed"
+
+                            styles={{
+                                menuPortal: base => ({
+                                    ...base,
+                                    zIndex: 9999
+                                })
                             }}
                         />
 
                         {
-                            form.vendor_name &&
-                            vendors.filter(v =>
-                                v.name
-                                    .toLowerCase()
-                                    .includes(
-                                        form.vendor_name.toLowerCase()
-                                    )
-                            ).length > 0 && (
+                            errors.vendor && (
 
-                                <div className="
-                                    absolute
-                                    top-full
-                                    left-0
-                                    z-50
-                                    bg-white
-                                    border
-                                    w-full
-                                    max-h-52
-                                    overflow-y-auto
-                                    rounded-xl
-                                    shadow-lg
+                                <p className="
+                                    text-red-500
+                                    text-xs
+                                    mt-1
                                 ">
-
-                                    {
-                                        vendors
-                                            .filter(v =>
-                                                v.name
-                                                    .toLowerCase()
-                                                    .includes(
-                                                        form.vendor_name.toLowerCase()
-                                                    )
-                                            )
-                                            .map(v => (
-
-                                                <div
-                                                    key={v.id}
-                                                    className="
-                                                        p-3
-                                                        hover:bg-gray-100
-                                                        cursor-pointer
-                                                        border-b
-                                                    "
-                                                    onClick={() => {
-
-                                                        setForm({
-                                                            ...form,
-                                                            vendor_id: v.id,
-                                                            vendor_name: v.name
-                                                        });
-
-                                                    }}
-                                                >
-
-                                                    <div className="font-medium">
-                                                        {v.name}
-                                                    </div>
-
-                                                    <div className="
-                                                        text-xs
-                                                        text-gray-500
-                                                    ">
-                                                        {v.mobile}
-                                                    </div>
-
-                                                </div>
-
-                                            ))
-                                    }
-
-                                </div>
+                                    {errors.vendor}
+                                </p>
                             )
                         }
 
@@ -435,54 +589,58 @@ export default function PurchaseForm() {
 
                 {/* TABLE */}
                 <div className="
-    w-full
-    overflow-x-auto
-    rounded-2xl
-    border
-    bg-white
-    shadow-sm
-">
+                    w-full
+                    overflow-x-auto
+                    rounded-2xl
+                    border
+                    bg-white
+                    shadow-sm
+                ">
 
                     <table className="
-    min-w-[950px]
-    w-full
-    text-xs
-    sm:text-sm
-">
+                        min-w-[1100px]
+                        w-full
+                        text-xs
+                        sm:text-sm
+                    ">
 
                         <thead className="bg-gray-100">
 
                             <tr>
 
-                                <th className="border p-3 text-left">
+                                <th className="border p-3">
                                     Product
                                 </th>
 
-                                <th className="border p-3 text-left">
-                                    Stocks
+                                <th className="border p-3">
+                                    Unit
                                 </th>
 
-                                <th className="border p-3 text-left">
+                                <th className="border p-3">
+                                    Stock
+                                </th>
+
+                                <th className="border p-3">
                                     Batch
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border p-3">
                                     Qty
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border p-3">
                                     Rate
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border p-3">
                                     Tax %
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border p-3">
                                     Total
                                 </th>
 
-                                <th className="border p-3 text-center">
+                                <th className="border p-3">
                                     Action
                                 </th>
 
@@ -495,11 +653,27 @@ export default function PurchaseForm() {
                             {
                                 items.map((item, i) => {
 
-                                    const base =
-                                        (item.qty * item.rate) || 0;
+                                    const qty =
+    Number(item.qty) || 0;
 
-                                    const tax =
-                                        (base * item.tax) / 100;
+const rate =
+    Number(item.rate) || 0;
+
+const taxPercent =
+    Number(item.tax) || 0;
+
+const base =
+    qty * rate;
+
+const cgst =
+    (base * taxPercent) / 200;
+
+const sgst =
+    (base * taxPercent) / 200;
+
+const total =
+    base + cgst + sgst;
+
 
                                     return (
 
@@ -522,7 +696,7 @@ export default function PurchaseForm() {
                                                             ? {
                                                                 value: item.product_id,
                                                                 label:
-                                                                    `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit || ""})`
+                                                                    `${item.product_name} (${parseFloat(item.unit_value || 0)} ${item.unit || ""})`
                                                             }
                                                             : null
                                                     }
@@ -532,9 +706,7 @@ export default function PurchaseForm() {
                                                             value: p.id,
 
                                                             label:
-                                                                `${p.name} ` +
-                                                                `(${parseFloat(p.unit_value)}${p.unit_name}) ` +
-                                                                `[Stock: ${parseFloat(p.stock || 0)}]`,
+                                                                `${p.name} (${parseFloat(p.unit_value || 0)} ${p.unit_name || ""}) [Stock: ${parseFloat(p.stock || 0)}]`,
 
                                                             product: p
                                                         }))
@@ -542,7 +714,8 @@ export default function PurchaseForm() {
 
                                                     onChange={(selectedOption) => {
 
-                                                        if (!selectedOption) return;
+                                                        if (!selectedOption)
+                                                            return;
 
                                                         const selected =
                                                             selectedOption.product;
@@ -553,11 +726,21 @@ export default function PurchaseForm() {
 
                                                             updated[i] = {
                                                                 ...updated[i],
-                                                                product_id: selected.id,
-                                                                product_name: selected.name,
-                                                                unit_value: selected.unit_value,
-                                                                unit: selected.unit_name,
-                                                                stock: selected.stock
+
+                                                                product_id:
+                                                                    selected.id,
+
+                                                                product_name:
+                                                                    selected.name,
+
+                                                                unit_value:
+                                                                    selected.unit_value,
+
+                                                                unit:
+                                                                    selected.unit_name,
+
+                                                                stock:
+                                                                    selected.stock
                                                             };
 
                                                             return updated;
@@ -581,8 +764,25 @@ export default function PurchaseForm() {
                                                         })
                                                     }}
 
-                                                    className="min-w-[220px] sm:min-w-[280px]"
+                                                    className="
+                                                        min-w-[250px]
+                                                    "
                                                 />
+
+                                            </td>
+
+                                            {/* UNIT */}
+                                            <td className="border p-2">
+
+                                                <div className="
+                                                    text-xs
+                                                    font-medium
+                                                    whitespace-nowrap
+                                                ">
+                                                    {parseFloat(item.unit_value || 0)}
+                                                    {" "}
+                                                    {item.unit || "-"}
+                                                </div>
 
                                             </td>
 
@@ -590,31 +790,11 @@ export default function PurchaseForm() {
                                             <td className="border p-2">
 
                                                 <div className="
-                                                    text-xs
-                                                    text-gray-700
+                                                    text-red-600
+                                                    font-semibold
+                                                    whitespace-nowrap
                                                 ">
-
-                                                    <span className="font-medium">
-                                                        {item.product_name || "-"}
-                                                    </span>
-
-                                                    <br />
-
-                                                    {parseFloat(item.unit_value || 0)}
-                                                    {" "}
-                                                    {item.unit || ""}
-
-                                                    <br />
-
-                                                    <span className="
-                                                        text-red-600
-                                                        font-semibold
-                                                    ">
-                                                        Stock:
-                                                        {" "}
-                                                        {parseFloat(item.stock || 0)}
-                                                    </span>
-
+                                                    {parseFloat(item.stock || 0)}
                                                 </div>
 
                                             </td>
@@ -624,6 +804,7 @@ export default function PurchaseForm() {
 
                                                 <input
                                                     className="input"
+
                                                     placeholder="Batch"
 
                                                     value={item.batch_no}
@@ -644,6 +825,7 @@ export default function PurchaseForm() {
 
                                                 <input
                                                     type="number"
+
                                                     className="input"
 
                                                     min="0"
@@ -659,6 +841,21 @@ export default function PurchaseForm() {
                                                     }
                                                 />
 
+                                                {
+                                                    errors[`qty_${i}`] && (
+
+                                                        <p className="
+                                                            text-red-500
+                                                            text-xs
+                                                            mt-1
+                                                        ">
+                                                            {
+                                                                errors[`qty_${i}`]
+                                                            }
+                                                        </p>
+                                                    )
+                                                }
+
                                             </td>
 
                                             {/* RATE */}
@@ -666,9 +863,11 @@ export default function PurchaseForm() {
 
                                                 <input
                                                     type="number"
+
                                                     className="input"
 
                                                     step="0.01"
+
                                                     min="0"
 
                                                     value={item.rate}
@@ -682,6 +881,21 @@ export default function PurchaseForm() {
                                                     }
                                                 />
 
+                                                {
+                                                    errors[`rate_${i}`] && (
+
+                                                        <p className="
+                                                            text-red-500
+                                                            text-xs
+                                                            mt-1
+                                                        ">
+                                                            {
+                                                                errors[`rate_${i}`]
+                                                            }
+                                                        </p>
+                                                    )
+                                                }
+
                                             </td>
 
                                             {/* TAX */}
@@ -689,9 +903,11 @@ export default function PurchaseForm() {
 
                                                 <input
                                                     type="number"
+
                                                     className="input"
 
                                                     step="0.01"
+
                                                     min="0"
 
                                                     value={item.tax}
@@ -708,35 +924,35 @@ export default function PurchaseForm() {
                                             </td>
 
                                             {/* TOTAL */}
-                                            <td className="
-                                                border
-                                                p-2
-                                                font-semibold
-                                                text-sm
-                                            ">
+<td className="
+    border
+    p-2
+    whitespace-nowrap
+    text-sm
+">
 
-                                                <div className="
-                                                    whitespace-nowrap
-                                                ">
+    <div className="
+        flex
+        flex-col
+        gap-1
+    ">
 
-                                                    <span className="font-light">
-                                                        {base.toFixed(2)}
-                                                        {" + "}
-                                                        {tax.toFixed(2)}
-                                                    </span>
+        <span className="text-gray-500">
+            {base.toFixed(2)}
+            {" + "}
+            {(cgst + sgst).toFixed(2)}
+        </span>
 
-                                                    {" = "}
+        <span className="
+            font-bold
+            text-green-700
+        ">
+            ₹ {total.toFixed(2)}
+        </span>
 
-                                                    <span className="
-                                                        text-green-800
-                                                        font-bold
-                                                    ">
-                                                        ₹ {(base + tax).toFixed(2)}
-                                                    </span>
+    </div>
 
-                                                </div>
-
-                                            </td>
+</td>
 
                                             {/* ACTION */}
                                             <td className="
@@ -778,6 +994,19 @@ export default function PurchaseForm() {
 
                 </div>
 
+                {
+                    errors.items && (
+
+                        <p className="
+                            text-red-500
+                            text-sm
+                            mt-2
+                        ">
+                            {errors.items}
+                        </p>
+                    )
+                }
+
                 {/* ADD ROW */}
                 <button
                     type="button"
@@ -785,275 +1014,403 @@ export default function PurchaseForm() {
                     onClick={addRow}
 
                     className="
-    mt-3
-    w-full
-    sm:w-auto
-    bg-gray-300
-    hover:bg-gray-700
-    hover:text-white
-    px-4
-    py-3
-    rounded-xl
-    font-medium
-    transition
-"
+                        mt-3
+                        bg-gray-200
+                        hover:bg-gray-800
+                        hover:text-white
+                        px-4
+                        py-3
+                        rounded-xl
+                        font-medium
+                        transition
+                    "
                 >
                     + Add Product Row
                 </button>
 
                 {/* SUMMARY */}
-                <div className="
-    flex
-    flex-col
-    xl:grid
-    xl:grid-cols-1
-    gap-6                                                                                                                   
-    mt-4    
+<div className="
+    mt-6
+    bg-white
+    border
+    rounded-2xl
+    p-4
+    sm:p-5
+    shadow-sm
 ">
 
-                    <div className="
-                        grid
-                        grid-cols-1
-                        lg:grid-cols-2
-                        gap-4                                                                                                                                                               
+    <div className="
+        grid
+        grid-cols-1
+        xl:grid-cols-2
+        gap-6
+    ">
+
+        {/* LEFT SIDE */}
+        <div className="
+            flex
+            flex-col
+            gap-5
+        ">
+
+            {/* PAYMENT STATUS */}
+            <div>
+
+                <label className="
+                    block
+                    text-sm
+                    font-semibold
+                    mb-3
+                    text-gray-700
+                ">
+                    Payment Status
+                </label>
+
+                <div className="
+                    flex
+                    flex-col
+                    sm:flex-row
+                    gap-3
+                ">
+
+                    {/* PAID */}
+                    <label className="
+                        flex
+                        items-center
+                        gap-3
+                        border
+                        rounded-2xl
+                        px-4
+                        py-3
+                        cursor-pointer
+                        bg-white
+                        hover:border-green-500
+                        transition
+                        w-full
+                        sm:w-auto
                     ">
 
-                        {/* TAX TABLE */}
-                        <div className="overflow-x-auto">
+                        <input
+                            type="radio"
 
-                            <table className="
-                                w-full
-                                text-sm
-                                border
-                            ">
+                            value="paid"
 
-                                <thead className="bg-gray-100">
+                            checked={
+                                form.payment_status === "paid"
+                            }
 
-                                    <tr>
+                            onChange={(e) =>
+                                setForm({
+                                    ...form,
+                                    payment_status:
+                                        e.target.value
+                                })
+                            }
+                        />
 
-                                        <th className="border p-2">
-                                            Taxable
-                                        </th>
+                        <span className="
+                            text-green-600
+                            font-semibold
+                        ">
+                            Paid
+                        </span>
 
-                                        <th className="border p-2">
-                                            CGST
-                                        </th>
+                    </label>
 
-                                        <th className="border p-2">
-                                            SGST
-                                        </th>
+                    {/* PENDING */}
+                    <label className="
+                        flex
+                        items-center
+                        gap-3
+                        border
+                        rounded-2xl
+                        px-4
+                        py-3
+                        cursor-pointer
+                        bg-white
+                        hover:border-red-500
+                        transition
+                        w-full
+                        sm:w-auto
+                    ">
 
-                                        <th className="border p-2">
-                                            Total Tax
-                                        </th>
+                        <input
+                            type="radio"
 
-                                    </tr>
+                            value="pending"
 
-                                </thead>
+                            checked={
+                                form.payment_status === "pending"
+                            }
 
-                                <tbody>
+                            onChange={(e) =>
+                                setForm({
+                                    ...form,
+                                    payment_status:
+                                        e.target.value
+                                })
+                            }
+                        />
 
-                                    <tr>
+                        <span className="
+                            text-red-600
+                            font-semibold
+                        ">
+                            Pending
+                        </span>
 
-                                        <td className="border p-2 text-center">
-                                            {summary.taxable.toFixed(2)}
-                                        </td>
-
-                                        <td className="border p-2 text-center">
-                                            {summary.cgst.toFixed(2)}
-                                        </td>
-
-                                        <td className="border p-2 text-center">
-                                            {summary.sgst.toFixed(2)}
-                                        </td>
-
-                                        <td className="border p-2 text-center">
-                                            {(summary.cgst + summary.sgst).toFixed(2)}
-                                        </td>
-
-                                    </tr>
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                        {/* TOTAL */}
-                        <div className="
-    text-right
-    sm:text-right
-    space-y-2           
-">
-
-                            <div>
-                                Sub Total:
-                                {" "}
-                                ₹ {summary.taxable.toFixed(2)}
-                            </div>
-
-                            <div>
-                                CGST:
-                                {" "}
-                                ₹ {summary.cgst.toFixed(2)}
-                            </div>
-
-                            <div>
-                                SGST:
-                                {" "}
-                                ₹ {summary.sgst.toFixed(2)}
-                            </div>
-
-                            {/* FREIGHT */}
-                            <div className="
-                                flex
-                                flex-col
-                                sm:flex-row
-                                justify-end
-                                items-start
-                                sm:items-center
-                                gap-3
-                            ">
-
-                                <span>
-                                    Freight (🚚)
-                                </span>
-
-                                <input
-                                    type="number"
-
-                                    className="
-                                        input
-                                        w-full
-                                        sm:w-40
-                                    "
-
-                                    step="0.01"
-
-                                    min="0"
-
-                                    value={form.hamali}
-
-                                    onChange={e =>
-                                        setForm({
-                                            ...form,
-                                            hamali: Number(e.target.value)
-                                        })
-                                    }
-                                />
-
-                            </div>
-
-                            <div className="font-semibold">
-                                Total:
-                                {" "}
-                                ₹ {summary.total.toFixed(2)}
-                            </div>
-
-                            <div>
-                                Round Off:
-                                {" "}
-                                ₹ {summary.roundOff.toFixed(2)}
-                            </div>
-
-                            <div className="
-                                text-2xl
-                                font-bold
-                                text-green-700
-                            ">
-                                Grand Total:
-                                {" "}
-                                ₹ {summary.grandTotal.toFixed(2)}
-                            </div>
-
-                            {/* PAYMENT */}
-                            <div className="
-                                flex
-                                flex-wrap
-                                justify-end
-                                gap-5
-                                pt-3
-                            ">
-
-                                <label className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                ">
-
-                                    <input
-                                        type="radio"
-
-                                        value="paid"
-
-                                        checked={
-                                            form.payment_status === "paid"
-                                        }
-
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                payment_status: e.target.value
-                                            })
-                                        }
-                                    />
-
-                                    Paid
-
-                                </label>
-
-                                <label className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                ">
-
-                                    <input
-                                        type="radio"
-
-                                        value="pending"
-
-                                        checked={
-                                            form.payment_status === "pending"
-                                        }
-
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                payment_status: e.target.value
-                                            })
-                                        }
-                                    />
-
-                                    Pending
-
-                                </label>
-
-                            </div>
-
-                        </div>
-
-                    </div>
+                    </label>
 
                 </div>
+
+            </div>
+
+            {/* NOTES */}
+            <div>
+
+                <label className="
+                    block
+                    text-sm
+                    font-semibold
+                    mb-2
+                    text-gray-700
+                ">
+                    Notes
+                </label>
+
+                <textarea
+                    className="
+                        input
+                        w-full
+                        min-h-[140px]
+                        resize-none
+                    "
+
+                    placeholder="
+                    Enter purchase notes...
+                    "
+
+                    value={form.notes || ""}
+
+                    onChange={(e) =>
+                        setForm({
+                            ...form,
+                            notes:
+                                e.target.value
+                        })
+                    }
+                />
+
+            </div>
+
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="
+            flex
+            flex-col
+            gap-4
+        ">
+
+            {/* TOTALS CARD */}
+            <div className="
+                border
+                rounded-2xl
+                p-4
+                bg-gray-50
+                space-y-4
+            ">
+
+                {/* TAXABLE */}
+                <div className="
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                    text-sm
+                    sm:text-base
+                ">
+                    <span>Taxable</span>
+
+                    <span className="font-medium">
+                        ₹ {summary.taxable.toFixed(2)}
+                    </span>
+                </div>
+
+                {/* CGST */}
+                <div className="
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                    text-sm
+                    sm:text-base
+                ">
+                    <span>CGST</span>
+
+                    <span className="font-medium">
+                        ₹ {summary.cgst.toFixed(2)}
+                    </span>
+                </div>
+
+                {/* SGST */}
+                <div className="
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                    text-sm
+                    sm:text-base
+                ">
+                    <span>SGST</span>
+
+                    <span className="font-medium">
+                        ₹ {summary.sgst.toFixed(2)}
+                    </span>
+                </div>
+
+                {/* TOTAL TAX */}
+                <div className="
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                    text-sm
+                    sm:text-base
+                ">
+                    <span>Total Tax</span>
+
+                    <span className="
+                        font-medium
+                        text-orange-600
+                    ">
+                        ₹ {(summary.cgst + summary.sgst).toFixed(2)}
+                    </span>
+                </div>
+
+                {/* HAMALI */}
+                <div className="
+                    flex
+                    flex-col
+                    sm:flex-row
+                    sm:items-center
+                    justify-between
+                    gap-2
+                    pt-2
+                ">
+
+                    <span className="
+                        font-medium
+                    ">
+                        Freight / Hamali
+                    </span>
+
+                    <input
+                        type="number"
+
+                        className="
+                            input
+                            w-full
+                            sm:w-32
+                        "
+
+                        min={0}
+
+                        step="0.01"
+
+                        value={form.hamali || 0}
+
+                        onChange={e =>
+                            setForm({
+                                ...form,
+                                hamali:
+                                    e.target.value
+                            })
+                        }
+                    />
+
+                </div>
+
+                {/* ROUND OFF */}
+                <div className="
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                    text-sm
+                    sm:text-base
+                ">
+                    <span>Round Off</span>
+
+                    <span className="font-medium">
+                        ₹ {summary.roundOff.toFixed(2)}
+                    </span>
+                </div>
+
+                {/* GRAND TOTAL */}
+                <div className="
+                    border-t
+                    pt-4
+                    flex
+                    justify-between
+                    items-center
+                    gap-3
+                ">
+
+                    <span className="
+                        text-lg
+                        sm:text-xl
+                        font-bold
+                    ">
+                        Grand Total
+                    </span>
+
+                    <span className="
+                        text-2xl
+                        sm:text-3xl
+                        font-bold
+                        text-green-700
+                        break-all
+                    ">
+                        ₹ {summary.grandTotal.toFixed(2)}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
                 {/* SUBMIT */}
                 <button
                     type="submit"
 
+                    disabled={loading}
+
                     className="
                         mt-5
                         bg-green-600
                         hover:bg-green-700
+                        disabled:bg-gray-400
                         text-white
-                        px-5
+                        px-6
                         py-3
                         rounded-xl
                         font-semibold
                         transition
                     "
                 >
-                    Save Purchase
+
+                    {
+                        loading
+                            ? "Saving..."
+                            : "Save Purchase"
+                    }
+
                 </button>
 
             </form>
