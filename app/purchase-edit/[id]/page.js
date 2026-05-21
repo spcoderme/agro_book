@@ -159,12 +159,7 @@ export default function PurchaseEditPage() {
         const total =
             taxable + cgst + sgst + hamali;
 
-            const roundOff =
-    Math.round(summary.total) -
-    summary.total;
-
-const grandTotal =
-    Math.round(summary.total);
+            
 
         return {
             taxable,
@@ -945,54 +940,22 @@ const grandTotal =
 
                             </div>
 
-                                {/* ROUND OFF */}
-<div className="
-    flex
-    justify-between
-    items-center
-">
+                                <div className="
+                                    border-t
+                                    pt-3
+                                    flex
+                                    justify-between
+                                    text-xl
+                                    font-bold
+                                ">
+                                    <span>
+                                        Grand Total
+                                    </span>
 
-    <span>
-        Round Off
-    </span>
-
-    <span
-        className={
-            roundOff >= 0
-                ? "text-green-700 font-medium"
-                : "text-red-700 font-medium"
-        }
-    >
-        ₹ {roundOff.toFixed(2)}
-    </span>
-
-</div>
-
-{/* GRAND TOTAL */}
-<div className="
-    border-t
-    pt-4
-    flex
-    justify-between
-    items-center
-">
-
-    <span className="
-        text-xl
-        font-bold
-    ">
-        Grand Total
-    </span>
-
-    <span className="
-        text-2xl
-        font-extrabold
-        text-green-700
-    ">
-        ₹ {grandTotal.toFixed(2)}
-    </span>
-
-</div>
+                                    <span>
+                                        ₹ {summary.total.toFixed(2)}
+                                    </span>
+                                </div>
 
                             </div>
 
