@@ -167,7 +167,7 @@ export default function PurchaseDetails() {
                                 </td>
 
                                 <td className="border p-2">
-                                    {item.quantity}
+                                    {parseFloat(item.quantity)}
                                 </td>
 
                                 <td className="border p-2">
@@ -228,101 +228,314 @@ export default function PurchaseDetails() {
 
             </div>
 
-            {/* SUMMARY */}
+            {/* ================= SUMMARY ================= */}
+{(() => {
 
-            <div className="mt-6 flex justify-between">
-                <div className="mt-5">
+    const taxable =
+        data.items.reduce(
+            (a, b) =>
+                a +
+                (
+                    Number(b.quantity || 0) *
+                    Number(b.rate || 0)
+                ),
+            0
+        );
 
-                    <table className="w-[400px] ml-auto border text-sm">
+    const cgst =
+        data.items.reduce(
+            (a, b) =>
+                a + Number(b.cgst || 0),
+            0
+        );
 
-                        <thead className="bg-gray-200">
+    const sgst =
+        data.items.reduce(
+            (a, b) =>
+                a + Number(b.sgst || 0),
+            0
+        );
 
-                            <tr>
-                                <th className="border p-2">Taxable</th>
-                                <th className="border p-2">CGST</th>
-                                <th className="border p-2">SGST</th>
-                                <th className="border p-2">Tax Total</th>
-                            </tr>
+    const taxTotal =
+        cgst + sgst;
 
-                        </thead>
+    const hamali =
+        Number(
+            data.purchase?.hamali || 0
+        );
 
-                        <tbody>
+    const actualTotal =
+        taxable +
+        taxTotal +
+        hamali;
 
-                            <tr>
+    const grandTotal =
+        Number(
+            data.purchase?.grand_total || 0
+        );
 
-                                <td className="border p-2 text-right">
-                                    ₹ {(
-                                        parseFloat(data.purchase.grand_total || 0)
-                                        -
-                                        parseFloat(data.purchase.hamali || 0)
-                                    ).toFixed(2)}
-                                </td>
+    const roundOff =
+        grandTotal - actualTotal;
 
-                                <td className="border p-2 text-right">
-                                    ₹ {data.items
-                                        .reduce((a, b) => a + Number(b.cgst || 0), 0)
-                                        .toFixed(2)}
-                                </td>
+    return (
 
-                                <td className="border p-2 text-right">
-                                    ₹ {data.items
-                                        .reduce((a, b) => a + Number(b.sgst || 0), 0)
-                                        .toFixed(2)}
-                                </td>
+        <div className="
+            mt-8
+            grid
+            grid-cols-1
+            xl:grid-cols-2
+            gap-6
+        ">
 
-                                <td className="border p-2 text-right font-semibold">
-                                    ₹ {data.items
-                                        .reduce(
-                                            (a, b) =>
-                                                a +
-                                                Number(b.cgst || 0) +
-                                                Number(b.sgst || 0),
-                                            0
-                                        )
-                                        .toFixed(2)}
-                                </td>
+            {/* TAX SUMMARY */}
+            <div className="
+                overflow-x-auto
+                border
+                rounded-2xl
+                bg-white
+                shadow-sm
+            ">
 
-                            </tr>
+                <table className="
+                    w-full
+                    text-sm
+                ">
 
-                        </tbody>
+                    <thead className="
+                        bg-gray-100
+                    ">
 
-                    </table>
+                        <tr>
 
-                </div>
+                            <th className="
+                                border
+                                p-3
+                                text-left
+                            ">
+                                Taxable
+                            </th>
 
-                <div className="w-[350px] border rounded p-4 bg-white">
+                            <th className="
+                                border
+                                p-3
+                                text-left
+                            ">
+                                CGST
+                            </th>
 
-                    <p>
-                    </p>
-                    <div className="flex justify-between mb-2">
-                        <div>
-                            <p>Total</p>
-                            <p><b>Freight/Hamali</b></p> 
-                        <p className="font-bold text-xl">Grand Total</p>
-                        </div>
-                        <div>
-                            <p>:</p>
-                            <p>:</p>
-                            <p>:</p>
-                        </div>
-                        <div className="text-right">
-                            <p>₹{(
-                                        parseFloat(data.purchase.grand_total || 0)
-                                        -
-                                        parseFloat(data.purchase.hamali || 0)
-                                    ).toFixed(2)}</p>
-                            <p>₹{data.purchase?.hamali}</p>
+                            <th className="
+                                border
+                                p-3
+                                text-left
+                            ">
+                                SGST
+                            </th>
 
-                        <p className="font-bold text-xl">
-                            ₹ {parseFloat(data.purchase?.grand_total || 0).toFixed(2)}
-                        </p>
-                        </div>
+                            <th className="
+                                border
+                                p-3
+                                text-left
+                            ">
+                                Total Tax
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+
+                            <td className="
+                                border
+                                p-3
+                                text-right
+                                font-medium
+                            ">
+                                ₹ {taxable.toFixed(2)}
+                            </td>
+
+                            <td className="
+                                border
+                                p-3
+                                text-right
+                            ">
+                                ₹ {cgst.toFixed(2)}
+                            </td>
+
+                            <td className="
+                                border
+                                p-3
+                                text-right
+                            ">
+                                ₹ {sgst.toFixed(2)}
+                            </td>
+
+                            <td className="
+                                border
+                                p-3
+                                text-right
+                                font-bold
+                                text-blue-700
+                            ">
+                                ₹ {taxTotal.toFixed(2)}
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {/* FINAL TOTAL CARD */}
+            <div className="
+                border
+                rounded-2xl
+                bg-white
+                shadow-sm
+                p-5
+                w-full
+            ">
+
+                <h3 className="
+                    text-lg
+                    font-bold
+                    mb-5
+                    text-gray-800
+                ">
+                    Invoice Summary
+                </h3>
+
+                <div className="
+                    space-y-3
+                    text-sm
+                ">
+
+                    {/* TAXABLE */}
+                    <div className="
+                        flex
+                        justify-between
+                    ">
+
+                        <span className="text-gray-600">
+                            Taxable Amount
+                        </span>
+
+                        <span className="font-medium">
+                            ₹ {taxable.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* CGST */}
+                    <div className="
+                        flex
+                        justify-between
+                    ">
+
+                        <span className="text-gray-600">
+                            CGST
+                        </span>
+
+                        <span>
+                            ₹ {cgst.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* SGST */}
+                    <div className="
+                        flex
+                        justify-between
+                    ">
+
+                        <span className="text-gray-600">
+                            SGST
+                        </span>
+
+                        <span>
+                            ₹ {sgst.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* HAMALI */}
+                    <div className="
+                        flex
+                        justify-between
+                    ">
+
+                        <span className="text-gray-600">
+                            Freight / Hamali
+                        </span>
+
+                        <span>
+                            ₹ {hamali.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* ROUND OFF */}
+                    <div className="
+                        flex
+                        justify-between
+                    ">
+
+                        <span className="text-gray-600">
+                            Round Off
+                        </span>
+
+                        <span
+                            className={
+                                roundOff >= 0
+                                    ? "text-green-700"
+                                    : "text-red-700"
+                            }
+                        >
+                            ₹ {roundOff.toFixed(2)}
+                        </span>
+
+                    </div>
+
+                    {/* TOTAL */}
+                    <div className="
+                        border-t
+                        pt-4
+                        mt-4
+                        flex
+                        justify-between
+                        items-center
+                    ">
+
+                        <span className="
+                            text-xl
+                            font-bold
+                            text-gray-800
+                        ">
+                            Grand Total
+                        </span>
+
+                        <span className="
+                            text-2xl
+                            font-extrabold
+                            text-green-700
+                        ">
+                            ₹ {grandTotal.toFixed(2)}
+                        </span>
 
                     </div>
 
                 </div>
 
             </div>
+
+        </div>
+    );
+
+})()}
             {/* NOTES */}
             {
                 data.purchase?.notes && (
