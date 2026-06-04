@@ -45,7 +45,7 @@ export default function PurchaseDetails() {
 
                 <div>
                     <h1 className="text-3xl font-bold">
-                        Sindhaphana Agro Agency, Majalgaon
+                        सिंधफणा ॲग्रो एजन्सी, माजलगाव
                     </h1>
                     <h4 className="text-xl font-bold">
                         Purchase Invoice
