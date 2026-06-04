@@ -78,7 +78,7 @@ export default function DashboardPage() {
                         <div>
 
     <h1 className="text-md sm:text-3xl font-extrabold tracking-tight text-gray-800">
-        Sindhphana Agro Agency
+        सिंधफणा ॲग्रो एजन्सी, माजलगाव
     </h1>
 
     <p className="text-sm sm:text-base text-gray-500 mt-1">

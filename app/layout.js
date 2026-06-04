@@ -58,7 +58,7 @@ export const metadata = {
         "Agriculture",
 
     applicationName:
-        "Sindhfana Agro Agency",
+        "Sindhaphana Agro Agency",
 
     openGraph: {
 
