@@ -1282,7 +1282,7 @@ const total =
 
                     <span className="
                         font-medium
-                        text-orange-600
+                        
                     ">
                         ₹ {(summary.cgst + summary.sgst).toFixed(2)}
                     </span>
@@ -1314,7 +1314,7 @@ const total =
                             sm:w-32
                         "
 
-                        min={0}
+                        
 
                         step="0.01"
 
@@ -1342,7 +1342,7 @@ const total =
                 ">
                     <span>Round Off</span>
 
-                    <span className="font-medium">
+                    <span className="font-medium text-orange-600">
                         ₹ {summary.roundOff.toFixed(2)}
                     </span>
                 </div>

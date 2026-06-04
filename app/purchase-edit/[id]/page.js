@@ -927,7 +927,6 @@ export default function PurchaseEditPage() {
                                         
                                         sm:w-40
                                     "
-                                    min={0}
                                     value={form.hamali || 0}
                                     onChange={e =>
                                         setForm({

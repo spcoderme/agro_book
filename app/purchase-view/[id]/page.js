@@ -269,13 +269,13 @@ export default function PurchaseDetails() {
         taxTotal +
         hamali;
 
-    const grandTotal =
+        const grandTotal =
         Number(
             data.purchase?.grand_total || 0
         );
+        const roundOff =
+            grandTotal - actualTotal;
 
-    const roundOff =
-        grandTotal - actualTotal;
 
     return (
 
