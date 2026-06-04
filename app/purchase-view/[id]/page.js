@@ -526,7 +526,7 @@ export default function PurchaseDetails() {
                             font-extrabold
                             text-green-700
                         ">
-                            ₹ {grandTotal.toFixed(2)}
+                            ₹ {roundedTotal.toFixed(2)}
                         </span>
 
                     </div>
