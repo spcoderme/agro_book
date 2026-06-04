@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f5fff1;
   --foreground: #000000;
 }
 
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
+    --background: #f5fff1;
     --foreground: #040404;
   }
 }
@@ -96,7 +96,7 @@ body {
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #afc4b0, #f7f7f7);
+  background: linear-gradient(135deg, #b4ffb8, #f7f7f7);
   border: none;
   border-radius: 10px;
   color: rgb(16, 13, 13);
@@ -107,7 +107,7 @@ body {
 
 /* Button Hover */
 .submit-btn:hover {
-  background: linear-gradient(135deg, #758776, #f7f7f7);
+  background: linear-gradient(135deg, #9fffa3, #f7f7f7);
 }
 
 /* Mobile Responsive */
