@@ -115,9 +115,7 @@ export default function PurchaseDetails() {
 
     </div>
 
-</div>
-
-                <div className="flex gap-3 print:hidden">
+    <div className="flex gap-3 print:hidden">
 
                     <Link
                         href={`/purchase-edit/${id}`}
@@ -133,7 +131,11 @@ export default function PurchaseDetails() {
                         Print
                     </button>
 
-                </div>              
+                </div> 
+
+</div>
+
+                             
 
             </div>
 
