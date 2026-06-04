@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function PurchaseDetails() {
 
@@ -43,18 +44,78 @@ export default function PurchaseDetails() {
             {/* HEADER */}
             <div className="flex justify-between items-center mb-6">
 
-                <div>
-                    <h1 className="text-3xl font-bold">
-                        सिंधफणा ॲग्रो एजन्सी, माजलगाव
-                    </h1>
-                    <h4 className="text-xl font-bold">
-                        Purchase Invoice
-                    </h4>
+                <div className="
+    flex
+    items-center
+    gap-4
+    border-b
+    pb-4
+    mb-4
+">
 
-                    <p className="text-gray-500">
-                        Bill No: {data.purchase?.bill_no}
-                    </p>
-                </div>
+    {/* LOGO */}
+    <div className="flex-shrink-0">
+
+        <Image
+            src="/SINGHPHANA_LOGO.png"
+            alt="Sindhphana Agro Agency Logo"
+            width={110}
+            height={110}
+            priority
+            className="
+                object-contain
+                print:w-[90px]
+                print:h-[90px]
+            "
+        />
+
+    </div>
+
+    {/* COMPANY DETAILS */}
+    <div className="flex-1 text-center">
+
+        <h1 className="
+            text-2xl
+            md:text-3xl
+            font-extrabold
+            tracking-wide
+        ">
+            सिंधफणा ॲग्रो एजन्सी, माजलगाव
+        </h1>
+
+        <p className="
+            text-sm
+            md:text-base
+            text-gray-600
+            mt-1
+        ">
+            Agricultural Inputs • Seeds • Fertilizers • Pesticides
+        </p>
+
+        <h2 className="
+            text-xl
+            md:text-2xl
+            font-bold
+            mt-2
+            text-gray-800
+        ">
+            PURCHASE INVOICE
+        </h2>
+
+        <p className="
+            text-sm
+            text-gray-600
+            mt-1
+        ">
+            Bill No :
+            <span className="font-semibold ml-1">
+                {data.purchase?.bill_no}
+            </span>
+        </p>
+
+    </div>
+
+</div>
 
                 <div className="flex gap-3 print:hidden">
 
