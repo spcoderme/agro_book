@@ -64,8 +64,8 @@ export default function PurchaseDetails() {
             priority
             className="
                 object-contain
-                print:w-[90px]
-                print:h-[90px]
+                print:w-[150px]
+                print:h-[150px]
             "
         />
 
