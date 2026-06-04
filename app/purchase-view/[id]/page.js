@@ -273,8 +273,11 @@ export default function PurchaseDetails() {
         Number(
             data.purchase?.grand_total || 0
         );
+
+        const roundedTotal =
+    Math.round(actualTotal);
         const roundOff =
-            grandTotal - actualTotal;
+            roundedTotal - actualTotal;
 
 
     return (
