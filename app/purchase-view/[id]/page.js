@@ -42,7 +42,7 @@ export default function PurchaseDetails() {
         <div className="p-6">
 
             {/* HEADER */}
-            <div className="flex justify-between items-center mb-6">
+            
 
                 <div className="
     flex
@@ -137,7 +137,7 @@ export default function PurchaseDetails() {
 
                              
 
-            </div>
+           
 
             {/* PURCHASE INFO */}
             <div className="grid grid-cols-2 gap-5 mb-6 bg-white border p-5 rounded">
