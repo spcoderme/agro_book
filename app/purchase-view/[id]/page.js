@@ -59,8 +59,8 @@ export default function PurchaseDetails() {
         <Image
             src="/SINGHPHANA_LOGO.png"
             alt="Sindhphana Agro Agency Logo"
-            width={110}
-            height={110}
+            width={150}
+            height={150}
             priority
             className="
                 object-contain
@@ -72,7 +72,7 @@ export default function PurchaseDetails() {
     </div>
 
     {/* COMPANY DETAILS */}
-    <div className="flex-1 text-center">
+    <div className="flex-1">
 
         <h1 className="
             text-2xl
@@ -92,15 +92,15 @@ export default function PurchaseDetails() {
             Agricultural Inputs • Seeds • Fertilizers • Pesticides
         </p>
 
-        <h2 className="
-            text-xl
-            md:text-2xl
+        <h5 className="
+            text-md
+            md:text-sm
             font-bold
             mt-2
             text-gray-800
         ">
             PURCHASE INVOICE
-        </h2>
+        </h5>
 
         <p className="
             text-sm
