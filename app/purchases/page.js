@@ -196,6 +196,7 @@ export default function PurchasesPage() {
                             options={products.map(p => ({
                                 value: p.name,
                                 label: `${p.name} (${parseFloat(p.unit_value || 0)} ${p.unit_name}) [Stock: ${p.stock || 0}]`
+>>>>>>> 433a66e2bd9268a5576abfc1e6031de6723be86d
                             }))}
                             value={
                                 filters.product
