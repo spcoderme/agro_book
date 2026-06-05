@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
@@ -15,7 +15,7 @@ const DatePicker = dynamic(
     () => import("react-datepicker"),
     { ssr: false }
 );
-const fileInputRef = useRef(null);
+
 export default function DispatchPage() {
 
     // ======================================================
@@ -117,24 +117,21 @@ export default function DispatchPage() {
     const productOptions =
         useMemo(() => {
 
-            return products
-        .filter(p => {
+            return products.map(p => ({
 
-            const alreadySelected =
-                items.some(
-                    (row, rowIndex) =>
-                        rowIndex !== i &&
-                        Number(row.product_id) === Number(p.id)
-                );
+                value: p.id,
 
-            return !alreadySelected;
+                label:
+                    `${p.name} ` +
+                    `(${parseFloat(
+                        p.unit_value || 0
+                    )}${p.unit_name || ""}) ` +
+                    `[Stock: ${parseFloat(
+                        p.stock || 0
+                    )}]`,
 
-        })
-        .map(p => ({
-            value: p.id,
-            label: `${p.name} (${parseFloat(p.unit_value || 0)}${p.unit_name || ""}) [Stock: ${parseFloat(p.stock || 0)}]`,
-            product: p
-        }));
+                product: p
+            }));
 
         }, [products]);
 
@@ -458,11 +455,6 @@ export default function DispatchPage() {
                     }
                 ]);
 
-                // clear file input
-if (fileInputRef.current) {
-    fileInputRef.current.value = "";
-}
-
                 setErrors({});
 
             } else {
@@ -734,7 +726,7 @@ if (fileInputRef.current) {
 
                                 <input
                                     type="file"
-                                    ref={fileInputRef}
+
                                     accept="
                                         image/png,
                                         image/jpeg,
@@ -801,10 +793,6 @@ if (fileInputRef.current) {
                                                 ...form,
                                                 bill_photo: null
                                             });
-
-                                            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
                                         }}
 
                                         className="
