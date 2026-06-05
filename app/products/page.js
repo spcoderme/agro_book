@@ -151,7 +151,7 @@ export default function Products() {
 
         <div className="max-h-[650px] overflow-y-auto">
 
-            <table className="min-w-[900px] w-full text-sm text-left">
+            <table className="min-w-[600px] w-full text-xs text-left">
 
                 {/* HEAD */}
                 <thead
@@ -181,7 +181,7 @@ export default function Products() {
                         <th className="p-3 border-r text-center whitespace-nowrap">
                             Status
                         </th>
-                        
+
                         <th className="p-3 border-r whitespace-nowrap">
                             Category
                         </th>
@@ -232,7 +232,7 @@ export default function Products() {
                                     </td>
 
                                     {/* NAME */}
-                                    <td className="p-3 min-w-[220px]">
+                                    <td className="p-3 min-w-[160px]">
 
                                         <div
                                             className="
