@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
+import Image from "next/image";
 import {
     ShoppingCart,
     Truck,
@@ -9,7 +9,6 @@ import {
     Package,
     FileText,
     Users,
-    LayoutDashboard,
     ArrowUpRight
 } from "lucide-react";
 
@@ -71,9 +70,26 @@ export default function DashboardPage() {
 
                     <div className="flex items-start sm:items-center gap-4">
 
-                        <div className="bg-black text-white p-3 sm:p-4 rounded-2xl shadow-lg">
-                            <LayoutDashboard size={30} />
-                        </div>
+                        <div className="flex-shrink-0">
+
+    <Image
+        src="/SINGHPHANA_LOGO.png"
+        alt="Sindhphana Agro Agency Logo"
+        width={70}
+        height={70}
+        priority
+        className="
+            object-contain
+            w-14
+            h-14
+            sm:w-16
+            sm:h-16
+            rounded-xl
+            shadow-lg
+        "
+    />
+
+</div>
 
                         <div>
 
