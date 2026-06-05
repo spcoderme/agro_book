@@ -44,69 +44,97 @@ export default function PurchaseDetails() {
             {/* HEADER */}
             
 
-                <div className="
-    flex
-    items-center
-    gap-4
-    border-b
-    pb-4
-    mb-4
-">
+                <div
+    className="
+        flex
+        flex-col
+        md:flex-row
+        md:items-center
+        gap-4
+        border-b
+        pb-4
+        mb-4
+    "
+>
 
     {/* LOGO */}
-    <div className="flex-shrink-0">
-
+    <div
+        className="
+            flex
+            justify-center
+            md:justify-start
+            flex-shrink-0
+        "
+    >
         <Image
             src="/SINGHPHANA_LOGO.png"
             alt="Sindhphana Agro Agency Logo"
-            width={150}
-            height={150}
+            width={120}
+            height={120}
             priority
             className="
                 object-contain
+                md:w-[150px]
+                md:h-[150px]
                 print:w-[150px]
                 print:h-[150px]
             "
         />
-
     </div>
 
     {/* COMPANY DETAILS */}
-    <div className="flex-1">
+    <div
+        className="
+            flex-1
+            text-center
+            md:text-left
+        "
+    >
 
-        <h1 className="
-            text-2xl
-            md:text-3xl
-            font-extrabold
-            tracking-wide
-        ">
+        <h1
+            className="
+                text-xl
+                sm:text-2xl
+                md:text-3xl
+                font-extrabold
+                tracking-wide
+                leading-tight
+            "
+        >
             सिंधफणा ॲग्रो एजन्सी, माजलगाव
         </h1>
 
-        <p className="
-            text-sm
-            md:text-base
-            text-gray-600
-            mt-1
-        ">
+        <p
+            className="
+                text-xs
+                sm:text-sm
+                md:text-base
+                text-gray-600
+                mt-1
+            "
+        >
             Agricultural Inputs • Seeds • Fertilizers • Pesticides
         </p>
 
-        <h5 className="
-            text-md
-            md:text-sm
-            font-bold
-            mt-2
-            text-gray-800
-        ">
+        <h5
+            className="
+                text-sm
+                md:text-base
+                font-bold
+                mt-2
+                text-gray-800
+            "
+        >
             PURCHASE INVOICE
         </h5>
 
-        <p className="
-            text-sm
-            text-gray-600
-            mt-1
-        ">
+        <p
+            className="
+                text-sm
+                text-gray-600
+                mt-1
+            "
+        >
             Bill No :
             <span className="font-semibold ml-1">
                 {data.purchase?.bill_no}
@@ -115,23 +143,51 @@ export default function PurchaseDetails() {
 
     </div>
 
-    <div className="flex gap-3 print:hidden">
+    {/* ACTION BUTTONS */}
+    <div
+        className="
+            flex
+            flex-row
+            md:flex-col
+            lg:flex-row
+            gap-2
+            justify-center
+            print:hidden
+        "
+    >
 
-                    <Link
-                        href={`/purchase-edit/${id}`}
-                        className="bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                        Edit
-                    </Link>
+        <Link
+            href={`/purchase-edit/${id}`}
+            className="
+                bg-green-600
+                hover:bg-green-700
+                text-white
+                px-4
+                py-2
+                rounded-lg
+                text-sm
+                text-center
+            "
+        >
+            Edit
+        </Link>
 
-                    <button
-                        onClick={() => window.print()}
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Print
-                    </button>
+        <button
+            onClick={() => window.print()}
+            className="
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                px-4
+                py-2
+                rounded-lg
+                text-sm
+            "
+        >
+            Print
+        </button>
 
-                </div> 
+    </div>
 
 </div>
 
