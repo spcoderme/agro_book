@@ -156,7 +156,7 @@ export default function Products() {
                 {/* HEAD */}
                 <thead
                     className="
-                        bg-green-600
+                        bg-gray-700
                         text-white
                         sticky
                         top-0
@@ -206,6 +206,7 @@ export default function Products() {
                                         bg-gray-200
                                         text-gray-500
                                         py-10
+                                        px-3 
                                     "
                                 >
                                     Loading...
@@ -325,6 +326,7 @@ export default function Products() {
                                 <td
                                     colSpan={5}
                                     className="
+                                        px-3
                                         py-10
                                         text-gray-500
                                         bg-gray-200
