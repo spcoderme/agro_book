@@ -181,6 +181,7 @@ export default function Products() {
                         <th className="p-3 border-r text-center whitespace-nowrap">
                             Status
                         </th>
+                        
                         <th className="p-3 border-r whitespace-nowrap">
                             Category
                         </th>
@@ -200,9 +201,10 @@ export default function Products() {
                             <tr>
 
                                 <td
-                                    colSpan={7}
+                                    colSpan={5}
                                     className="
-                                        text-center
+                                        bg-gray-200
+                                        text-gray-500
                                         py-10
                                     "
                                 >
@@ -237,9 +239,7 @@ export default function Products() {
                                                 font-semibold
                                                 text-gray-800
                                             "
-                                        >
-                                            {p.name} ({parseFloat(p.unit_value || 0)}<span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-semibold">{p.unit_name}</span>)
-                                        </div>
+                                        >{p.name} (<span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-semibold">{parseFloat(p.unit_value || 0)}{p.unit_name}</span>)</div>
 
                                     </td>
 
@@ -323,9 +323,8 @@ export default function Products() {
                             <tr>
 
                                 <td
-                                    colSpan={6}
+                                    colSpan={5}
                                     className="
-                                        text-center
                                         py-10
                                         text-gray-500
                                         bg-gray-200
