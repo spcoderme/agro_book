@@ -160,7 +160,7 @@ export default function ProductForm({ onSuccess }) {
             text-gray-800
         "
     >
-        Add Product
+       &#128655; Add Product
     </h2>
 
     <p

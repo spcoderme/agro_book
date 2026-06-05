@@ -696,7 +696,7 @@ const total =
                                                             ? {
                                                                 value: item.product_id,
                                                                 label:
-                                                                    `${item.product_name} (${parseFloat(item.unit_value || 0)} ${item.unit || ""})`
+                                                                    `${item.product_name} (${parseFloat(item.unit_value || 0)}${item.unit || ""})`
                                                             }
                                                             : null
                                                     }
@@ -706,7 +706,7 @@ const total =
                                                             value: p.id,
 
                                                             label:
-                                                                `${p.name} (${parseFloat(p.unit_value || 0)} ${p.unit_name || ""}) [Stock: ${parseFloat(p.stock || 0)}]`,
+                                                                `${p.name} (${parseFloat(p.unit_value || 0)}${p.unit_name || ""}) [Stock: ${parseFloat(p.stock || 0)}]`,
 
                                                             product: p
                                                         }))

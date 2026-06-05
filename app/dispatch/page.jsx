@@ -524,7 +524,7 @@ export default function DispatchPage() {
                             font-bold
                             text-gray-800
                         ">
-                            🚚 Dispatch Product
+                            📦 Dispatch Product
                         </h1>
 
                         <p className="
