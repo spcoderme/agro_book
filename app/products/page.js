@@ -174,9 +174,6 @@ export default function Products() {
                             Product Name
                         </th>
 
-                        <th className="p-3 border-r whitespace-nowrap">
-                            Category
-                        </th>
 
                         <th className="p-3 border-r whitespace-nowrap">
                             Pack Size
@@ -188,6 +185,9 @@ export default function Products() {
 
                         <th className="p-3 border-r text-center whitespace-nowrap">
                             Status
+                        </th>
+                        <th className="p-3 border-r whitespace-nowrap">
+                            Category
                         </th>
 
                         
@@ -248,10 +248,7 @@ export default function Products() {
 
                                     </td>
 
-                                    {/* CATEGORY */}
-                                    <td className="p-3 text-gray-700 whitespace-nowrap">
-                                        {p.category || "-"}
-                                    </td>
+                                    
 
                                     {/* PACK */}
                                     <td className="p-3 whitespace-nowrap">
@@ -269,13 +266,11 @@ export default function Products() {
                                                     parseFloat(
                                                         p.unit_value || 0
                                                     )
-                                                }
-                                            </span>
-
-                                            <span
+                                                }</span>
+                                                <span
                                                 className="
-                                                    bg-blue-100
-                                                    text-blue-700
+                                                    bg-gray-100
+                                                    text-gray-700
                                                     px-2 py-1
                                                     rounded-md
                                                     text-xs
@@ -351,6 +346,11 @@ export default function Products() {
                                                 )
                                         }
 
+                                    </td>
+
+                                    {/* CATEGORY */}
+                                    <td className="p-3 text-gray-700 whitespace-nowrap">
+                                        {p.category || "-"}
                                     </td>
 
                                       
