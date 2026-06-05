@@ -174,11 +174,6 @@ export default function Products() {
                             Product Name
                         </th>
 
-
-                        <th className="p-3 border-r whitespace-nowrap">
-                            Pack Size
-                        </th>
-
                         <th className="p-3 border-r whitespace-nowrap">
                             Current Stock
                         </th>
@@ -243,46 +238,11 @@ export default function Products() {
                                                 text-gray-800
                                             "
                                         >
-                                            {p.name}
+                                            {p.name} ({parseFloat(p.unit_value || 0)}<span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-semibold">{p.unit_name}</span>)
                                         </div>
 
                                     </td>
 
-                                    
-
-                                    {/* PACK */}
-                                    <td className="p-3 whitespace-nowrap">
-
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                            "
-                                        >
-
-                                            <span className="font-medium">
-                                                {
-                                                    parseFloat(
-                                                        p.unit_value || 0
-                                                    )
-                                                }</span>
-                                                <span
-                                                className="
-                                                    bg-gray-100
-                                                    text-gray-700
-                                                    px-2 py-1
-                                                    rounded-md
-                                                    text-xs
-                                                    font-semibold
-                                                "
-                                            >
-                                                {p.unit_name}
-                                            </span>
-
-                                        </div>
-
-                                    </td>
 
                                     {/* STOCK */}
                                     <td className="p-3 whitespace-nowrap">
