@@ -60,13 +60,14 @@ export default function PurchaseDetails() {
 
     {/* LOGO */}
     <div
-        className="
-            flex
-            justify-center
-            md:justify-start
-            flex-shrink-0
-        "
-    >
+    className="
+        flex
+        justify-center
+        md:justify-start
+        print:justify-start
+        flex-shrink-0
+    "
+>
         <Image
             src="/SINGHPHANA_LOGO.png"
             alt="Sindhphana Agro Agency Logo"
@@ -151,7 +152,7 @@ export default function PurchaseDetails() {
             flex
             flex-row
             md:flex-col
-            lg:flex-row
+            lg:flex-col
             gap-2
             justify-center
             print:hidden
