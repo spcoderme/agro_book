@@ -49,7 +49,8 @@ export default function PurchaseDetails() {
         flex
         flex-col
         md:flex-row
-        md:items-center
+        print:flex-row
+        print:items-center
         gap-4
         border-b
         pb-4
@@ -59,13 +60,14 @@ export default function PurchaseDetails() {
 
     {/* LOGO */}
     <div
-        className="
-            flex
-            justify-center
-            md:justify-start
-            flex-shrink-0
-        "
-    >
+    className="
+        flex
+        justify-center
+        md:justify-start
+        print:justify-start
+        flex-shrink-0
+    "
+>
         <Image
             src="/SINGHPHANA_LOGO.png"
             alt="Sindhphana Agro Agency Logo"
@@ -84,12 +86,13 @@ export default function PurchaseDetails() {
 
     {/* COMPANY DETAILS */}
     <div
-        className="
-            flex-1
-            text-center
-            md:text-left
-        "
-    >
+    className="
+        flex-1
+        text-center
+        md:text-left
+        print:text-left
+    "
+>
 
         <h1
             className="
