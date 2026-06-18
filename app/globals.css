@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #d4d4d4;
+    --background: #f7f7f7;
     --foreground: #040404;
   }
 }
@@ -65,6 +65,7 @@ body {
 .form-group input:focus,
 .form-group select:focus {
   border-color: #b6dbb8;
+  background: #ffffff;
   box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
 }
 

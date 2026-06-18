@@ -39,14 +39,14 @@ const cards = [
         description: "Track all dispatch records.",
         href: "/dispatches",
         icon: FileText,
-        color: "from-red-500 to-green-100"
+        color: "from-red-500 to-green-600"
     },
     {
         title: "Products",
         description: "Manage product inventory & stock.",
         href: "/products",
         icon: Package,
-        color: "from-orange-500 to-purple-600"
+        color: "from-orange-500 to-gray-600"
     },
     {
         title: "Vendors",
