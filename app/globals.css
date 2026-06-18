@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5fff1;
+  --background: #f6ffd2;
   --foreground: #000000;
 }
 
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #f5fff1;
+    --background: #deffe2;
     --foreground: #040404;
   }
 }
@@ -30,7 +30,7 @@ body {
   max-width: 420px;
   margin: auto;
   padding: 25px;
-  background: #f6fff8;
+  background: #f3ffcd;
   border-radius: 16px;
   box-shadow: 0 8px 25px rgba(0, 128, 0, 0.08);
 }
@@ -39,7 +39,7 @@ body {
 .form-title {
   text-align: center;
   margin-bottom: 20px;
-  color: #3c523e;
+  color: #1c1c1c;
 }
 
 /* Form Group */
@@ -64,7 +64,7 @@ body {
 /* Focus Effect */
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #c5ffc8;
+  border-color: #b6dbb8;
   box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
 }
 
@@ -89,7 +89,7 @@ body {
 .form-group select:valid+label {
   top: -8px;
   font-size: 12px;
-  color: #1b5e20;
+  color: #aaefae;
 }
 
 /* Button */
@@ -107,7 +107,7 @@ body {
 
 /* Button Hover */
 .submit-btn:hover {
-  background: linear-gradient(135deg, #9fffa3, #f7f7f7);
+  background: linear-gradient(135deg, #b4ffb6, #f7f7f7);
 }
 
 /* Mobile Responsive */

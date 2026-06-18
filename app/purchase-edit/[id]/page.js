@@ -693,6 +693,9 @@ export default function PurchaseEditPage() {
                                                 whitespace-nowrap
                                             ">
                                                 ₹ {total.toFixed(2)}
+                                                <div className="text-xs text-gray-500">
+                                        (Base: ₹ {base.toFixed(2)})
+                                    </div>
                                             </td>
 
                                         </tr>

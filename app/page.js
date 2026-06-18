@@ -158,7 +158,7 @@ export default function HomePage() {
                     leading-relaxed
                 ">
                     © 2026 सिंधफणा ॲग्रो एजन्सी,
-                    माजलगाव. All rights reserved.
+                    माजलगाव. All rights reserved. Powered by{"Suraj Pawar- +91 8999020025"}
                 </div>
 
             </div>
