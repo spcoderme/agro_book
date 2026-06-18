@@ -152,13 +152,13 @@ export default function HomePage() {
                 {/* FOOTER */}
                 <div className="
                     mt-8
-                    text-[11px]
+                    text-[8px]
                     sm:text-xs
                     text-gray-400
                     leading-relaxed
                 ">
                     © 2026 सिंधफणा ॲग्रो एजन्सी,
-                    माजलगाव. All rights reserved. Powered by{"Suraj Pawar- +91 8999020025"}
+                    माजलगाव. All rights reserved. Powered by {"Suraj Pawar- +91 8999020025"}
                 </div>
 
             </div>
