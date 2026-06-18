@@ -10,9 +10,9 @@ export default function HomePage() {
         <main className="
             min-h-screen
             bg-gradient-to-br
-            from-green-50
+            from-yellow-75
             via-white
-            to-emerald-100
+            to-green-50
             flex
             items-center
             justify-center

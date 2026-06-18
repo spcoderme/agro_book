@@ -39,7 +39,7 @@ const cards = [
         description: "Track all dispatch records.",
         href: "/dispatches",
         icon: FileText,
-        color: "from-purple-500 to-green-600"
+        color: "from-red-500 to-green-100"
     },
     {
         title: "Products",

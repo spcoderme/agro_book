@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6ffd2;
+  --background: #f1f1f1;
   --foreground: #000000;
 }
 
@@ -14,7 +14,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #deffe2;
+    --background: #d4d4d4;
     --foreground: #040404;
   }
 }
@@ -89,7 +89,7 @@ body {
 .form-group select:valid+label {
   top: -8px;
   font-size: 12px;
-  color: #aaefae;
+  color: #d4ffd6;
 }
 
 /* Button */
